@@ -1,0 +1,205 @@
+basePath: /api/v1
+definitions:
+  model.AlexaResponse:
+    properties:
+      mainText:
+        type: string
+      redirectionUrl:
+        type: string
+      titleText:
+        type: string
+      uid:
+        type: string
+      updateDate:
+        type: string
+    type: object
+  model.DailyAverage:
+    properties:
+      average:
+        type: number
+      date:
+        type: string
+    type: object
+  model.DailyPriceInfo:
+    properties:
+      cheapestPeriods:
+        items:
+          items:
+            $ref: '#/definitions/model.Price'
+          type: array
+        type: array
+      dayAverage:
+        type: number
+      dayRating:
+        $ref: '#/definitions/model.DayRating'
+      expensivePeriods:
+        items:
+          items:
+            $ref: '#/definitions/model.Price'
+          type: array
+        type: array
+      prices:
+        items:
+          $ref: '#/definitions/model.Price'
+        type: array
+      thirtyDayAverage:
+        type: number
+    type: object
+  model.DayRating:
+    enum:
+    - ""
+    type: string
+    x-enum-varnames:
+    - Nil
+  model.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  model.Price:
+    properties:
+      dateTime:
+        type: string
+      price:
+        type: number
+    type: object
+info:
+  contact: {}
+  description: Returns PVPC electricity prices for a given range
+  title: Electricity Prices API
+  version: 2.0.0
+paths:
+  /alexa:
+    get:
+      description: Returns the full feed for an alexa flash briefing.
+      operationId: get-full-feed
+      parameters:
+      - description: Language in format es or en
+        in: query
+        name: lang
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.AlexaResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      tags:
+      - Alexa
+  /alexa-skill:
+    post:
+      consumes:
+      - application/json
+      description: Processes the request from the Alexa skill.
+      operationId: process-skill-request
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.AlexaResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      tags:
+      - Alexa
+  /price:
+    get:
+      description: Returns price info for the date provided. If no date is provided
+        it defaults to today. The day should be given in a string form yyyy-MM-dd
+      operationId: get-prices
+      parameters:
+      - description: Date in format yyyy-MM-dd
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Price'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      tags:
+      - Price
+  /price/averages:
+    get:
+      description: Returns daily averages for the date provided and the previous 30
+        days.
+      operationId: get-daily-averages
+      parameters:
+      - description: Date in format yyyy-MM-dd
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.DailyAverage'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      tags:
+      - Price
+  /price/dailyinfo:
+    get:
+      description: Returns daily info for the date provided.
+      operationId: get-daily-info
+      parameters:
+      - description: Date in format yyyy-MM-dd
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.DailyPriceInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      tags:
+      - Price
+swagger: "2.0"

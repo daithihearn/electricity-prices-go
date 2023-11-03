@@ -1,0 +1,312 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Returns PVPC electricity prices for a given range",
+        "title": "Electricity Prices API",
+        "contact": {},
+        "version": "2.0.0"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/alexa": {
+            "get": {
+                "description": "Returns the full feed for an alexa flash briefing.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alexa"
+                ],
+                "operationId": "get-full-feed",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Language in format es or en",
+                        "name": "lang",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.AlexaResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/alexa-skill": {
+            "post": {
+                "description": "Processes the request from the Alexa skill.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alexa"
+                ],
+                "operationId": "process-skill-request",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.AlexaResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/price": {
+            "get": {
+                "description": "Returns price info for the date provided. If no date is provided it defaults to today. The day should be given in a string form yyyy-MM-dd",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Price"
+                ],
+                "operationId": "get-prices",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Date in format yyyy-MM-dd",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Price"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/price/averages": {
+            "get": {
+                "description": "Returns daily averages for the date provided and the previous 30 days.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Price"
+                ],
+                "operationId": "get-daily-averages",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Date in format yyyy-MM-dd",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.DailyAverage"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/price/dailyinfo": {
+            "get": {
+                "description": "Returns daily info for the date provided.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Price"
+                ],
+                "operationId": "get-daily-info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Date in format yyyy-MM-dd",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.DailyPriceInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "model.AlexaResponse": {
+            "type": "object",
+            "properties": {
+                "mainText": {
+                    "type": "string"
+                },
+                "redirectionUrl": {
+                    "type": "string"
+                },
+                "titleText": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                },
+                "updateDate": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DailyAverage": {
+            "type": "object",
+            "properties": {
+                "average": {
+                    "type": "number"
+                },
+                "date": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DailyPriceInfo": {
+            "type": "object",
+            "properties": {
+                "cheapestPeriods": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/model.Price"
+                        }
+                    }
+                },
+                "dayAverage": {
+                    "type": "number"
+                },
+                "dayRating": {
+                    "$ref": "#/definitions/model.DayRating"
+                },
+                "expensivePeriods": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/model.Price"
+                        }
+                    }
+                },
+                "prices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Price"
+                    }
+                },
+                "thirtyDayAverage": {
+                    "type": "number"
+                }
+            }
+        },
+        "model.DayRating": {
+            "type": "string",
+            "enum": [
+                ""
+            ],
+            "x-enum-varnames": [
+                "Nil"
+            ]
+        },
+        "model.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Price": {
+            "type": "object",
+            "properties": {
+                "dateTime": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        }
+    }
+}
