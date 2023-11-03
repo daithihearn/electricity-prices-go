@@ -218,6 +218,9 @@ func ParseAlexaSkillRequest(intent model.AlexaIntent, lang language.Tag) model.A
 		} else {
 			msg = p.Sprintf("alexa_thirty_day_average", utils.FormatPrice(avg))
 		}
+	default:
+		msg = p.Sprintf("alexa_welcome")
 	}
+
 	return utils.WrapAlexaSkillResponse(msg, endSess)
 }
