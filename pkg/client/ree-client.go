@@ -49,7 +49,7 @@ func GetPricesFromRee(date time.Time) ([]model.Price, bool, error) {
 
 		var included model.ReeIncluded
 		for _, inc := range res.Included {
-			if inc.ID == "600" {
+			if inc.ID == "1001" {
 				included = inc
 				continue
 			}

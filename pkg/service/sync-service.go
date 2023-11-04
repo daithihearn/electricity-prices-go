@@ -15,7 +15,7 @@ func SyncWithAPI() {
 	// Get last day that was synced from database.
 	p, err := db.GetLatestPrice()
 	if err != nil {
-		p = model.Price{DateTime: utils.StartOfDay(time.Date(2014, 3, 31, 0, 0, 0, 0, time.Local))}
+		p = model.Price{DateTime: utils.StartOfDay(time.Date(2021, 5, 31, 0, 0, 0, 0, time.Local))}
 	}
 	currentDate := utils.StartOfDay(p.DateTime).AddDate(0, 0, 1)
 	log.Println("Last day synced: ", currentDate)
