@@ -14,6 +14,8 @@ lint: fmt #@ Run the linter
 	golint ./...
 run: test docs vet #@ Start locally
 	go run cmd/api/main.go
+sync: test vet #@ Sync local data with API
+	go run cmd/sync/main.go
 update: #@ Update dependencies
 	go mod tidy
 clear-build: #@ Clear build folder
@@ -24,4 +26,4 @@ build: test docs vet clear-build copy-translations #@ Build the binary
 	go build -o build/api/main cmd/api/main.go
 .PHONY:build
 image: docs vet #@ Build docker image
-	docker build -f DockerfileApi -t electricity-prices-api . --load
+	docker build -t electricity-prices . --load

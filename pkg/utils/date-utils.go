@@ -56,3 +56,30 @@ func SameHour(date1 time.Time, date2 time.Time) bool {
 	locDate2 := date2.In(location)
 	return locDate1.Hour() == locDate2.Hour() && locDate1.Day() == locDate2.Day() && locDate1.Month() == locDate2.Month() && locDate1.Year() == locDate2.Year()
 }
+
+func StartOfDay(date time.Time) time.Time {
+	location, err := time.LoadLocation("Europe/Madrid")
+	if err != nil {
+		log.Fatal(err)
+	}
+	localisedDate := date.In(location)
+	return time.Date(localisedDate.Year(), localisedDate.Month(), localisedDate.Day(), 0, 0, 0, 0, localisedDate.Location())
+}
+
+// ParseDateFromEsios
+// day is in format 02/01/2006
+// hour is in format 00-01 to represent a 1-hour period (should be parsed to the beginning of the period)
+func ParseDateFromEsios(day, hour string) time.Time {
+	location, err := time.LoadLocation("Europe/Madrid")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Parse the date string
+	date, err := time.ParseInLocation("02/01/2006 15:04", day+" "+hour[:2]+":00", location)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return date
+}

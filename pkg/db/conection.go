@@ -68,7 +68,8 @@ func GetCollection() *mongo.Collection {
 		log.Fatal(err)
 	}
 
-	collection := client.Database("electricity-prices").Collection("prices")
+	db := client.Database("electricity-prices")
+	collection := db.Collection("prices")
 
 	return collection
 }
