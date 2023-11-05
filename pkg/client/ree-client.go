@@ -55,7 +55,7 @@ func GetPricesFromRee(date time.Time) ([]model.Price, bool, error) {
 			}
 		}
 		if len(included.Attributes.Values) == 0 {
-			return nil, false, fmt.Errorf("no prices returned from API")
+			return nil, true, nil
 		}
 
 		prices := make([]model.Price, len(included.Attributes.Values))
