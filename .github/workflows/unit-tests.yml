@@ -1,0 +1,35 @@
+name: Run unit tests
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Run unit tests
+    runs-on: self-hosted
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18' # Use the version of Go you need for your project
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
+
+      - name: Get dependencies
+        run: make dependencies # Assuming you have a make target for fetching dependencies
+
+      - name: Test
+        run: make test
+
+      - name: Upload test coverage (optional)
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-coverage
+          path: coverage.out

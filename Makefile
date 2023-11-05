@@ -4,8 +4,10 @@ help:
 docs: #@ Generate docs
 	swag init -g cmd/api/main.go
 .PHONY:docs
-test: fmt #@ Run tests
-	go test -v ./...
+test: fmt vet #@ Run tests
+	go test -v -coverprofile=coverage.out ./...
+    go tool cover -html=coverage.out -o coverage.html
+
 fmt: #@ Format the code
 	go fmt ./...
 vet: fmt #@ VET the code
