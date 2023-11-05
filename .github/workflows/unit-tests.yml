@@ -21,9 +21,6 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3
 
-      - name: Get dependencies
-        run: make dependencies # Assuming you have a make target for fetching dependencies
-
       - name: Test
         run: make test
 
