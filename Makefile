@@ -25,5 +25,5 @@ copy-translations: #@ Copy translations
 build: test docs vet clear-build copy-translations #@ Build the api and sync binaries
 	go build -o build/api/main cmd/api/main.go && go build -o build/sync/main cmd/sync/main.go
 .PHONY:build
-image: docs vet #@ Build docker image
+image: #@ Build docker image
 	docker build -t electricity-prices . --load
