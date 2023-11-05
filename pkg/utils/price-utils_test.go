@@ -510,3 +510,48 @@ func TestGroupPrices(t *testing.T) {
 	}
 
 }
+
+func TestCalculateDailyAverages(t *testing.T) {
+	var cheapDay []model.Price
+	err := readJSONFromFile("../../test/resources/cheap-day.json", &cheapDay)
+	if err != nil {
+		t.Errorf("Error reading file: %s", err)
+	}
+	cheapAvg := CalculateAverage(cheapDay)
+
+	var normalDay []model.Price
+	err = readJSONFromFile("../../test/resources/normal-day.json", &normalDay)
+	if err != nil {
+		t.Errorf("Error reading file: %s", err)
+	}
+	normalAvg := CalculateAverage(normalDay)
+
+	testCases := []struct {
+		name     string
+		prices   []model.Price
+		expected []model.DailyAverage
+	}{
+		{"Empty slice", []model.Price{}, []model.DailyAverage{}},
+		{"Cheap day", cheapDay, []model.DailyAverage{{Date: "2023-11-02", Average: cheapAvg}}},
+		{"Normal day", normalDay, []model.DailyAverage{{Date: "2023-08-18", Average: normalAvg}}},
+		{"Two days", append(cheapDay, normalDay...), []model.DailyAverage{{Date: "2023-08-18", Average: normalAvg}, {Date: "2023-11-02", Average: cheapAvg}}},
+		{"Two days reversed order", append(normalDay, cheapDay...), []model.DailyAverage{{Date: "2023-08-18", Average: normalAvg}, {Date: "2023-11-02", Average: cheapAvg}}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dailyAverages := CalculateDailyAverages(tc.prices)
+			if len(dailyAverages) != len(tc.expected) {
+				t.Errorf("Expected %d averages, but got %d", len(tc.expected), len(dailyAverages))
+			}
+			for i := range dailyAverages {
+				if dailyAverages[i].Date != tc.expected[i].Date {
+					t.Errorf("Expected %s, but got %s", tc.expected[i].Date, dailyAverages[i].Date)
+				}
+				if !floatEquals(dailyAverages[i].Average, tc.expected[i].Average) {
+					t.Errorf("Expected %f, but got %f", tc.expected[i].Average, dailyAverages[i].Average)
+				}
+			}
+		})
+	}
+}
