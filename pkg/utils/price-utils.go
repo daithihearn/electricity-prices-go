@@ -227,6 +227,17 @@ func calculateExpensiveVariance(prices []model.Price, thirtyDayAvg float64) floa
 // groupPrices
 // Group consecutive prices into periods.
 func groupPrices(cheapPrices []model.Price) [][]model.Price {
+	// Order the prices by date ascending
+	for i := 0; i < len(cheapPrices); i++ {
+		for j := i + 1; j < len(cheapPrices); j++ {
+			if cheapPrices[i].DateTime.After(cheapPrices[j].DateTime) {
+				temp := cheapPrices[i]
+				cheapPrices[i] = cheapPrices[j]
+				cheapPrices[j] = temp
+			}
+		}
+	}
+
 	var result [][]model.Price
 	i := 0
 	for i < len(cheapPrices) {
