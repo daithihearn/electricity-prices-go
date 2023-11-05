@@ -65,21 +65,3 @@ func StartOfDay(date time.Time) time.Time {
 	localisedDate := date.In(location)
 	return time.Date(localisedDate.Year(), localisedDate.Month(), localisedDate.Day(), 0, 0, 0, 0, localisedDate.Location())
 }
-
-// ParseDateFromEsios
-// day is in format 02/01/2006
-// hour is in format 00-01 to represent a 1-hour period (should be parsed to the beginning of the period)
-func ParseDateFromEsios(day, hour string) time.Time {
-	location, err := time.LoadLocation("Europe/Madrid")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Parse the date string
-	date, err := time.ParseInLocation("02/01/2006 15:04", day+" "+hour[:2]+":00", location)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return date
-}
