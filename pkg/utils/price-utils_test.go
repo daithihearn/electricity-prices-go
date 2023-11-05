@@ -355,8 +355,8 @@ func TestCalculateCheapPeriods(t *testing.T) {
 }
 
 func TestCalculateExpensivePeriods(t *testing.T) {
-	var cheapPeriod []model.Price
-	err := readJSONFromFile("../../test/resources/cheap-day.json", &cheapPeriod)
+	var cheapDay []model.Price
+	err := readJSONFromFile("../../test/resources/cheap-day.json", &cheapDay)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
@@ -372,7 +372,7 @@ func TestCalculateExpensivePeriods(t *testing.T) {
 		{"Two prices", []model.Price{{Price: 1.0}, {Price: 2.0}}, 1.0, [][]model.Price{{model.Price{Price: 2.0}}}},
 		{"Three prices", []model.Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, [][]model.Price{{model.Price{Price: 3.0}}}},
 		{"Negative", []model.Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, [][]model.Price{{model.Price{Price: 3.0}}}},
-		{"periodOne", cheapPeriod, 0.15, [][]model.Price{}},
+		{"periodOne", cheapDay, 0.15, [][]model.Price{}},
 	}
 
 	for _, tc := range testCases {
@@ -466,4 +466,47 @@ func TestFormatPrice(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGroupPrices(t *testing.T) {
+	var ndNotGrouped []model.Price
+	err := readJSONFromFile("../../test/resources/normal-day-cp-not-grouped.json", &ndNotGrouped)
+	if err != nil {
+		t.Errorf("Error reading file: %s", err)
+	}
+
+	var ndGrouped [][]model.Price
+	err = readJSONFromFile("../../test/resources/normal-day-cp.json", &ndGrouped)
+	if err != nil {
+		t.Errorf("Error reading file: %s", err)
+	}
+
+	testCases := []struct {
+		name     string
+		prices   []model.Price
+		expected [][]model.Price
+	}{
+		{"Empty slice", []model.Price{}, [][]model.Price{}},
+		{"Normal Day - not ordered", ndNotGrouped, ndGrouped},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			grouped := groupPrices(tc.prices)
+			if len(grouped) != len(tc.expected) {
+				t.Errorf("Expected %d periods, but got %d", len(tc.expected), len(grouped))
+			}
+			for i := range grouped {
+				if len(grouped[i]) != len(tc.expected[i]) {
+					t.Errorf("Expected %d prices in period %d, but got %d", len(tc.expected[i]), i, len(grouped[i]))
+				}
+				for j := range grouped[i] {
+					if !floatEquals(grouped[i][j].Price, tc.expected[i][j].Price) {
+						t.Errorf("Expected %f, but got %f", tc.expected[i][j].Price, grouped[i][j].Price)
+					}
+				}
+			}
+		})
+	}
+
 }
