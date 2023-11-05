@@ -29,4 +29,4 @@ jobs:
         if: always()
         with:
           name: test-coverage
-          path: coverage.out
+          path: coverage.html
