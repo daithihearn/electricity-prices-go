@@ -5,12 +5,13 @@ import (
 	"time"
 )
 
-func ParseStartAndEndTimes(date time.Time, numberOfDays int) (time.Time, time.Time) {
-	xDaysAgo := date.AddDate(0, 0, -numberOfDays)
-	startOfGivenDay := time.Date(xDaysAgo.Year(), xDaysAgo.Month(), xDaysAgo.Day(), 0, 0, 0, 0, xDaysAgo.Location())
-	start := startOfGivenDay.Add(-time.Second) // subtract one second from the start of the given day
+// ParseStartAndEndTimes
+// Given an end date and a number of days, calculate the start and end dates for use in a query.
+func ParseStartAndEndTimes(endDate time.Time, numberOfDays int) (time.Time, time.Time) {
+	xDaysAgo := endDate.AddDate(0, 0, -numberOfDays)
+	start := time.Date(xDaysAgo.Year(), xDaysAgo.Month(), xDaysAgo.Day(), 23, 59, 59, 0, xDaysAgo.Location())
 
-	nextDay := time.Date(date.Year(), date.Month(), date.Day()+1, 0, 0, 0, 0, date.Location())
+	nextDay := time.Date(endDate.Year(), endDate.Month(), endDate.Day()+1, 0, 0, 0, 0, endDate.Location())
 	end := nextDay.Add(-time.Second)
 	return start, end
 }
