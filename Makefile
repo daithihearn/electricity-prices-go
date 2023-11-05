@@ -22,8 +22,8 @@ clear-build: #@ Clear build folder
 	rm -rf build && mkdir build && mkdir build/api && mkdir build/api/pkg && mkdir build/api/pkg/i18n
 copy-translations: #@ Copy translations
 	cp -r pkg/i18n/*.toml build/api/pkg/i18n
-build: test docs vet clear-build copy-translations #@ Build the binary
-	go build -o build/api/main cmd/api/main.go
+build: test docs vet clear-build copy-translations #@ Build the api and sync binaries
+	go build -o build/api/main cmd/api/main.go && go build -o build/sync/main cmd/sync/main.go
 .PHONY:build
 image: docs vet #@ Build docker image
 	docker build -t electricity-prices . --load
