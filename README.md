@@ -1,8 +1,7 @@
 # Electricity Prices API
 [![codecov](https://codecov.io/gh/daithihearn/electricity-prices-go/graph/badge.svg?token=I50D46PMGZ)](https://codecov.io/gh/daithihearn/electricity-prices-go)
 
-An API for information about electricity prices in Spain. Data is scraped from [REData Api](https://www.ree.
-es/en/apidatos) and exposed via a [restful API](https://elec-api.daithiapp.com/).
+An API for electricity prices in Spain. Data is scraped from [REData Api](https://www.ree.es/en/apidatos) and exposed via a [restful API](https://elec-api.daithiapp.com/).
 
 This API supports a [dashboard application](https://elec.daithiapp.com/), an Alexa Skill and Flash briefing.
 
