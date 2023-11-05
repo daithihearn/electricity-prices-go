@@ -4,4 +4,4 @@ build/
 
 .idea
 
-coverage.out
+coverage.*
