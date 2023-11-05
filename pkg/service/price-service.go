@@ -9,7 +9,7 @@ import (
 )
 
 func GetDailyPrices(date time.Time) ([]model.Price, error) {
-	start, end := utils.ParseStartAndEndTimes(date, 0)
+	start, end := utils.ParseStartAndEndTimes(date, 1)
 
 	prices, err := db.GetPrices(start, end)
 
