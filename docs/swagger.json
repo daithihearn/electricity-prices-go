@@ -4,7 +4,7 @@
         "description": "Returns PVPC electricity prices for a given range",
         "title": "Electricity Prices API",
         "contact": {},
-        "version": "2.1.0"
+        "version": "2.1.2"
     },
     "basePath": "/api/v1",
     "paths": {
