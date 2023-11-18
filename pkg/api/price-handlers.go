@@ -1,14 +1,12 @@
 package api
 
 import (
-	"electricity-prices/pkg/service"
+	"electricity-prices/pkg/date"
+	"electricity-prices/pkg/price"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"electricity-prices/pkg/model"
-	"electricity-prices/pkg/utils"
 )
 
 // GetPrices @Summary Get price info
@@ -17,9 +15,9 @@ import (
 // @ID get-prices
 // @Produce  json
 // @Param date query string false "Date in format yyyy-MM-dd"
-// @Success 200 {object} []model.Price
-// @Failure 400 {object} model.ErrorResponse
-// @Failure 500 {object} model.ErrorResponse
+// @Success 200 {object} []price.Price
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /price [get]
 func GetPrices(c *gin.Context) {
 
@@ -27,16 +25,19 @@ func GetPrices(c *gin.Context) {
 	dateStr := c.DefaultQuery("date", time.Now().Format("2006-01-02")) // Default to today if not provided
 
 	// Parse the date string
-	date, err := utils.ParseDate(dateStr)
+	d, err := date.ParseDate(dateStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "Failed to parse date. Ensure it is in the format yyyy-MM-dd."})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Failed to parse date. Ensure it is in the format yyyy-MM-dd."})
 		return
 	}
 
+	// Get the context from the request
+	ctx := c.Request.Context()
+
 	// Get the prices from the database
-	prices, err := service.GetDailyPrices(date)
+	prices, err := price.GetDailyPrices(ctx, d)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 		return
 	}
 
@@ -49,9 +50,9 @@ func GetPrices(c *gin.Context) {
 // @ID get-daily-averages
 // @Produce  json
 // @Param date query string false "Date in format yyyy-MM-dd"
-// @Success 200 {object} []model.DailyAverage
-// @Failure 400 {object} model.ErrorResponse
-// @Failure 500 {object} model.ErrorResponse
+// @Success 200 {object} []price.DailyAverage
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /price/averages [get]
 func GetThirtyDayAverages(c *gin.Context) {
 
@@ -59,15 +60,18 @@ func GetThirtyDayAverages(c *gin.Context) {
 	dateStr := c.DefaultQuery("date", time.Now().Format("2006-01-02")) // Default to today if not provided
 
 	// Parse the date string
-	date, err := utils.ParseDate(dateStr)
+	d, err := date.ParseDate(dateStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "Failed to parse date. Ensure it is in the format yyyy-MM-dd."})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Failed to parse date. Ensure it is in the format yyyy-MM-dd."})
 		return
 	}
 
-	averages, err := service.GetDailyAverages(date, 30)
+	// Get the context from the request
+	ctx := c.Request.Context()
+
+	averages, err := price.GetDailyAverages(ctx, d, 30)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 		return
 	}
 
@@ -80,9 +84,9 @@ func GetThirtyDayAverages(c *gin.Context) {
 // @ID get-daily-info
 // @Produce  json
 // @Param date query string false "Date in format yyyy-MM-dd"
-// @Success 200 {object} model.DailyPriceInfo
-// @Failure 400 {object} model.ErrorResponse
-// @Failure 500 {object} model.ErrorResponse
+// @Success 200 {object} price.DailyPriceInfo
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /price/dailyinfo [get]
 func GetDailyInfo(c *gin.Context) {
 
@@ -90,19 +94,22 @@ func GetDailyInfo(c *gin.Context) {
 	dateStr := c.DefaultQuery("date", time.Now().Format("2006-01-02")) // Default to today if not provided
 
 	// Parse the date string
-	date, err := utils.ParseDate(dateStr)
+	d, err := date.ParseDate(dateStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ErrorResponse{Message: "Failed to parse date. Ensure it is in the format yyyy-MM-dd."})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Failed to parse date. Ensure it is in the format yyyy-MM-dd."})
 		return
 	}
 
-	dailyInfo, err := service.GetDailyInfo(date)
+	// Get the context from the request
+	ctx := c.Request.Context()
+
+	dailyInfo, err := price.GetDailyInfo(ctx, d)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 		return
 	}
 	if len(dailyInfo.Prices) == 0 {
-		c.JSON(http.StatusNotFound, model.ErrorResponse{Message: "No data found for the given date."})
+		c.JSON(http.StatusNotFound, ErrorResponse{Message: "No data found for the given date."})
 		return
 	}
 

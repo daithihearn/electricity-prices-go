@@ -3,12 +3,11 @@ package db
 import (
 	"context"
 	"errors"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"os"
 	"sync"
-
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
@@ -17,78 +16,64 @@ var (
 	mongoOnce           sync.Once
 )
 
-func GetMongoClient() (*mongo.Client, error) {
+// GetMongoClient initializes and returns a MongoDB client instance.
+func GetMongoClient(ctx context.Context) (*mongo.Client, error) {
 	mongoOnce.Do(func() {
 		connectionString := os.Getenv("MONGODB_URI")
 		if connectionString == "" {
-			log.Fatal("MONGODB_URI must be set", errors.New("MONGODB_URI must be set"))
+			clientInstanceError = errors.New("MONGODB_URI must be set")
+			log.Fatal(clientInstanceError)
 			return
 		}
 
-		// Define a command monitor
-		//cmdMonitor := &event.CommandMonitor{
-		//	Started: func(_ context.Context, evt *event.CommandStartedEvent) {
-		//		log.Printf("Started command %s with data: %v", evt.CommandName, evt.Command)
-		//	},
-		//	Succeeded: func(_ context.Context, evt *event.CommandSucceededEvent) {
-		//		log.Printf("Succeeded command %s with result: %v", evt.CommandName, evt.Reply)
-		//	},
-		//	Failed: func(_ context.Context, evt *event.CommandFailedEvent) {
-		//		log.Printf("Failed command %s with error: %v", evt.CommandName, evt.Failure)
-		//	},
-		//}
+		log.Println("Connecting to MongoDB:", connectionString)
 
-		log.Println("Connected to MongoDB:", connectionString)
-
-		// Set client options
 		clientOptions := options.Client().ApplyURI(connectionString)
 
-		// Connect to MongoDB
-		client, err := mongo.Connect(context.TODO(), clientOptions)
+		var err error
+		clientInstance, err = mongo.Connect(ctx, clientOptions)
 		if err != nil {
 			clientInstanceError = err
 			return
 		}
 
-		// Check the connection
-		err = client.Ping(context.TODO(), nil)
+		err = clientInstance.Ping(ctx, nil)
 		if err != nil {
 			clientInstanceError = err
 			return
 		}
-
-		clientInstance = client
 	})
 	return clientInstance, clientInstanceError
 }
 
-func GetCollection() *mongo.Collection {
-	client, err := GetMongoClient()
+func GetCollection(ctx context.Context) (*mongo.Collection, error) {
+	client, err := GetMongoClient(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	db := client.Database("electricity-prices")
 	collection := db.Collection("prices")
 
-	return collection
+	return collection, nil
 }
 
-func ExecutePipeline(pipeline mongo.Pipeline) (*mongo.Cursor, error) {
-	collection := GetCollection()
-	cursor, err := collection.Aggregate(context.TODO(), pipeline)
+func ExecutePipeline(ctx context.Context, pipeline mongo.Pipeline) (*mongo.Cursor, error) {
+	collection, err := GetCollection(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return cursor, nil
+
+	return collection.Aggregate(ctx, pipeline)
 }
 
-// CloseMongoConnection will close the MongoDB connection when the application exits.
-func CloseMongoConnection() {
+func CloseMongoConnection(ctx context.Context) error {
 	if clientInstance != nil {
-		err := clientInstance.Disconnect(context.TODO())
-		if err != nil {
-			log.Fatalf("Failed to close MongoDB connection: %v", err)
-		}
+		return clientInstance.Disconnect(ctx)
 	}
+	return nil
 }
+
+// In your main function or where you call these functions, you should create a context:
+// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// defer cancel()

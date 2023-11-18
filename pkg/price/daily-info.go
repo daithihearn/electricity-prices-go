@@ -1,4 +1,4 @@
-package model
+package price
 
 type DayRating string
 

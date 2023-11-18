@@ -1,28 +1,28 @@
-package service
+package sync
 
 import (
-	"electricity-prices/pkg/client"
-	"electricity-prices/pkg/db"
-	"electricity-prices/pkg/model"
-	"electricity-prices/pkg/utils"
+	"context"
+	"electricity-prices/pkg/date"
+	"electricity-prices/pkg/price"
+	"electricity-prices/pkg/ree"
 	"log"
 	"time"
 )
 
-func SyncWithAPI() {
+func SyncWithAPI(ctx context.Context) {
 	log.Println("Starting to sync with API...")
 
 	// Get last day that was synced from database.
-	p, err := db.GetLatestPrice()
+	p, err := price.GetLatestPrice(ctx)
 	if err != nil {
-		p = model.Price{DateTime: utils.StartOfDay(time.Date(2021, 5, 31, 0, 0, 0, 0, time.Local))}
+		p = price.Price{DateTime: date.StartOfDay(time.Date(2021, 5, 31, 0, 0, 0, 0, time.Local))}
 	}
-	currentDate := utils.StartOfDay(p.DateTime).AddDate(0, 0, 1)
+	currentDate := date.StartOfDay(p.DateTime).AddDate(0, 0, 1)
 	log.Println("Last day synced: ", currentDate)
 
 	// If last day is after tomorrow then exit
 	today := time.Now()
-	tomorrow := utils.StartOfDay(today.AddDate(0, 0, 1))
+	tomorrow := date.StartOfDay(today.AddDate(0, 0, 1))
 
 	// Keep processing until we reach tomorrow
 	for {
@@ -32,7 +32,7 @@ func SyncWithAPI() {
 		}
 
 		// Get the prices from the API
-		prices, synced, err := client.GetPricesFromRee(currentDate)
+		prices, synced, err := ree.GetPricesFromRee(currentDate)
 
 		if synced {
 			log.Println("Fully synced. Exiting...")
@@ -46,10 +46,11 @@ func SyncWithAPI() {
 		log.Printf("Syncing prices for %s", currentDate.Format("January 2 2006"))
 
 		// Save the prices in the database
-		err = db.SavePrices(prices)
+		err = price.SavePrices(ctx, prices)
 		if err != nil {
 			panic(err)
 		}
 		currentDate = currentDate.AddDate(0, 0, 1)
 	}
+
 }

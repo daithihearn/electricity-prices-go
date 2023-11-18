@@ -1,13 +1,13 @@
-package service
+package alexa
 
 import (
+	"context"
+	"electricity-prices/pkg/date"
 	"electricity-prices/pkg/i18n"
-	"electricity-prices/pkg/model"
-	"electricity-prices/pkg/utils"
+	"electricity-prices/pkg/price"
 	"fmt"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"log"
 	"strings"
 	"time"
 )
@@ -22,9 +22,9 @@ func GetTitle(lang language.Tag) string {
 	return p.Sprintf("alexa_full_title")
 }
 
-func GetFullFeed(date time.Time, lang language.Tag) (string, error) {
+func GetFullFeed(ctx context.Context, date time.Time, lang language.Tag) (string, error) {
 	// Get the daily info for the given date
-	dailyInfo, err := GetDailyInfo(date)
+	dailyInfo, err := price.GetDailyInfo(ctx, date)
 
 	if err != nil {
 		return "", err
@@ -50,7 +50,7 @@ func GetFullFeed(date time.Time, lang language.Tag) (string, error) {
 	messages = append(messages, getNextExpensivePeriodMessage(dailyInfo.ExpensivePeriods, lang))
 
 	// Get tomorrow's data
-	tomorrowInfo, err := GetDailyInfo(date.AddDate(0, 0, 1))
+	tomorrowInfo, err := price.GetDailyInfo(ctx, date.AddDate(0, 0, 1))
 	if err == nil && len(tomorrowInfo.Prices) > 0 {
 		messages = append(messages, getTomorrowRatingMessage(tomorrowInfo.DayRating, tomorrowInfo.DayAverage, lang))
 	}
@@ -65,40 +65,39 @@ func getTodayNoDataMessage(lang language.Tag) string {
 	return noData
 }
 
-func getTodayRatingMessage(dayRating model.DayRating, dayAverage float64, lang language.Tag) string {
+func getTodayRatingMessage(dayRating price.DayRating, dayAverage float64, lang language.Tag) string {
 	p := message.NewPrinter(lang)
 
-	if dayRating == model.Nil {
+	if dayRating == price.Nil {
 		return ""
 	}
 
 	rating := p.Sprintf(fmt.Sprintf("alexa_rating_%s", strings.ToLower(string(dayRating))))
-	todayRating := p.Sprintf("alexa_today_rating", rating, utils.FormatPrice(dayAverage))
+	todayRating := p.Sprintf("alexa_today_rating", rating, price.FormatPrice(dayAverage))
 
 	return todayRating
 }
 
-func getTomorrowRatingMessage(dayRating model.DayRating, dayAverage float64, lang language.Tag) string {
+func getTomorrowRatingMessage(dayRating price.DayRating, dayAverage float64, lang language.Tag) string {
 	p := message.NewPrinter(lang)
 
-	if dayRating == model.Nil {
+	if dayRating == price.Nil {
 		return ""
 	}
 
 	rating := p.Sprintf(fmt.Sprintf("alexa_rating_%s", strings.ToLower(string(dayRating))))
-	log.Printf("Rating: %s", rating)
-	tomorrowRating := p.Sprintf("alexa_tomorrow_rating", rating, utils.FormatPrice(dayAverage))
+	tomorrowRating := p.Sprintf("alexa_tomorrow_rating", rating, price.FormatPrice(dayAverage))
 
 	return tomorrowRating
 }
 
-func getCurrentPriceMessage(prices []model.Price, lang language.Tag) (string, error) {
+func getCurrentPriceMessage(prices []price.Price, lang language.Tag) (string, error) {
 	p := message.NewPrinter(lang)
 	now := time.Now()
 
-	for _, price := range prices {
-		if utils.SameHour(now, price.DateTime) {
-			return p.Sprintf("alexa_current_price", utils.FormatPrice(price.Price)), nil
+	for _, pr := range prices {
+		if date.SameHour(now, pr.DateTime) {
+			return p.Sprintf("alexa_current_price", price.FormatPrice(pr.Price)), nil
 		}
 	}
 	return "", fmt.Errorf("no current price found")
@@ -106,18 +105,18 @@ func getCurrentPriceMessage(prices []model.Price, lang language.Tag) (string, er
 
 // getNextCheapPeriodMessage
 // Get the next cheap period message.
-func getNextCheapPeriodMessage(periods [][]model.Price, lang language.Tag) string {
+func getNextCheapPeriodMessage(periods [][]price.Price, lang language.Tag) string {
 	p := message.NewPrinter(lang)
 
-	next, started := utils.GetNextPeriod(periods, time.Now())
+	next, started := price.GetNextPeriod(periods, time.Now())
 
 	if next == nil {
 		return p.Sprintf("alexa_next_cheap_period_nodata")
 	}
 
-	avg := utils.FormatPrice(utils.CalculateAverage(next))
-	start := utils.FormatTime(next[0].DateTime)
-	end := utils.FormatTime(next[len(next)-1].DateTime)
+	avg := price.FormatPrice(price.CalculateAverage(next))
+	start := date.FormatTime(next[0].DateTime)
+	end := date.FormatTime(next[len(next)-1].DateTime)
 
 	if started {
 		return p.Sprintf("alexa_current_cheap_period", start, avg, end)
@@ -129,18 +128,18 @@ func getNextCheapPeriodMessage(periods [][]model.Price, lang language.Tag) strin
 
 // getNextExpensivePeriodMessage
 // Get the next expensive period message.
-func getNextExpensivePeriodMessage(periods [][]model.Price, lang language.Tag) string {
+func getNextExpensivePeriodMessage(periods [][]price.Price, lang language.Tag) string {
 	p := message.NewPrinter(lang)
 
-	next, started := utils.GetNextPeriod(periods, time.Now())
+	next, started := price.GetNextPeriod(periods, time.Now())
 
 	if next == nil {
 		return p.Sprintf("alexa_next_expensive_period_nodata")
 	}
 
-	avg := utils.FormatPrice(utils.CalculateAverage(next))
-	start := utils.FormatTime(next[0].DateTime)
-	end := utils.FormatTime(next[len(next)-1].DateTime)
+	avg := price.FormatPrice(price.CalculateAverage(next))
+	start := date.FormatTime(next[0].DateTime)
+	end := date.FormatTime(next[len(next)-1].DateTime)
 
 	if started {
 		return p.Sprintf("alexa_current_expensive_period", start, avg, end)
@@ -149,7 +148,7 @@ func getNextExpensivePeriodMessage(periods [][]model.Price, lang language.Tag) s
 	}
 }
 
-func ParseAlexaSkillRequest(intent model.AlexaIntent, lang language.Tag) model.AlexaSkillResponse {
+func ProcessAlexaSkillRequest(ctx context.Context, intent AlexaIntent, lang language.Tag) AlexaSkillResponse {
 	p := message.NewPrinter(lang)
 	var endSess bool
 	var msg string
@@ -168,13 +167,11 @@ func ParseAlexaSkillRequest(intent model.AlexaIntent, lang language.Tag) model.A
 	case "AMAZON.FallbackIntent":
 		msg = p.Sprintf("alexa_welcome")
 	case "FULL":
-		msg, _ = GetFullFeed(time.Now(), lang)
-	case "TODAY_AVERAGE":
-		fallthrough
-	case "TODAY":
+		msg, _ = GetFullFeed(ctx, time.Now(), lang)
+	case "TODAY", "TODAY_AVERAGE":
 		today := time.Now()
-		rating, err := GetDayRating(today)
-		avg, err2 := GetDayAverage(today)
+		rating, err := price.GetDayRating(ctx, today)
+		avg, err2 := price.GetDayAverage(ctx, today)
 		if err != nil || err2 != nil {
 			msg = getTodayNoDataMessage(lang)
 		} else {
@@ -182,45 +179,45 @@ func ParseAlexaSkillRequest(intent model.AlexaIntent, lang language.Tag) model.A
 		}
 	case "TOMORROW":
 		tomorrow := time.Now().AddDate(0, 0, 1)
-		rating, err := GetDayRating(tomorrow)
-		avg, err2 := GetDayAverage(tomorrow)
+		rating, err := price.GetDayRating(ctx, tomorrow)
+		avg, err2 := price.GetDayAverage(ctx, tomorrow)
 		if err != nil || err2 != nil {
 			msg = p.Sprintf("alexa_tomorrow_nodata")
 		} else {
 			msg = getTomorrowRatingMessage(rating, avg, lang)
 		}
 	case "NEXT_CHEAP":
-		cheapPeriods, err := GetCheapPeriods(time.Now())
+		cheapPeriods, err := price.GetCheapPeriods(ctx, time.Now())
 		if err != nil {
 			msg = p.Sprintf("alexa_next_cheap_period_nodata")
 		} else {
 			msg = getNextCheapPeriodMessage(cheapPeriods, lang)
 		}
 	case "NEXT_EXPENSIVE":
-		expensivePeriods, err := GetExpensivePeriods(time.Now())
+		expensivePeriods, err := price.GetExpensivePeriods(ctx, time.Now())
 		if err != nil {
 			msg = p.Sprintf("alexa_next_expensive_period_nodata")
 		} else {
 			msg = getNextExpensivePeriodMessage(expensivePeriods, lang)
 		}
 	case "CURRENT_PRICE":
-		price, err := GetPrice(time.Now())
+		pr, err := price.GetPrice(ctx, time.Now())
 		if err != nil {
 			msg = p.Sprintf("alexa_today_nodata")
 		} else {
-			msg = p.Sprintf("alexa_current_price", utils.FormatPrice(price.Price))
+			msg = p.Sprintf("alexa_current_price", price.FormatPrice(pr.Price))
 		}
 
 	case "THIRTY_DAY_AVERAGE":
-		avg, err := GetThirtyDayAverage(time.Now())
+		avg, err := price.GetThirtyDayAverage(ctx, time.Now())
 		if err != nil {
 			msg = p.Sprintf("alexa_today_nodata")
 		} else {
-			msg = p.Sprintf("alexa_thirty_day_average", utils.FormatPrice(avg))
+			msg = p.Sprintf("alexa_thirty_day_average", price.FormatPrice(avg))
 		}
 	default:
 		msg = p.Sprintf("alexa_welcome")
 	}
 
-	return utils.WrapAlexaSkillResponse(msg, endSess)
+	return WrapAlexaSkillResponse(msg, endSess)
 }
