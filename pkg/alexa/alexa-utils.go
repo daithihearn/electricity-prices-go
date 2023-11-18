@@ -1,13 +1,12 @@
-package utils
+package alexa
 
 import (
-	"electricity-prices/pkg/model"
 	"github.com/google/uuid"
 	"time"
 )
 
-func WrapAlexaResponse(title, message string) model.AlexaResponse {
-	return model.AlexaResponse{
+func WrapAlexaResponse(title, message string) AlexaResponse {
+	return AlexaResponse{
 		Uid:            uuid.New().String(),
 		UpdateDate:     time.Now().Format("2006-01-02T15:04:05.000Z"),
 		TitleText:      title,
@@ -16,11 +15,11 @@ func WrapAlexaResponse(title, message string) model.AlexaResponse {
 	}
 }
 
-func WrapAlexaSkillResponse(message string, endSession bool) model.AlexaSkillResponse {
-	return model.AlexaSkillResponse{
+func WrapAlexaSkillResponse(message string, endSession bool) AlexaSkillResponse {
+	return AlexaSkillResponse{
 		Version: "1.0",
-		Response: model.AlexaResponseBody{
-			OutputSpeech: model.OutputSpeech{
+		Response: AlexaResponseBody{
+			OutputSpeech: OutputSpeech{
 				Type: "PlainText",
 				Text: message,
 			},

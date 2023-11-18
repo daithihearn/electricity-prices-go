@@ -37,19 +37,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.AlexaResponse"
+                            "$ref": "#/definitions/alexa.AlexaResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -72,19 +72,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.AlexaResponse"
+                            "$ref": "#/definitions/alexa.AlexaResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -114,20 +114,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Price"
+                                "$ref": "#/definitions/price.Price"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -157,20 +157,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.DailyAverage"
+                                "$ref": "#/definitions/price.DailyAverage"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -198,19 +198,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.DailyPriceInfo"
+                            "$ref": "#/definitions/price.DailyPriceInfo"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/model.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -218,7 +218,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "model.AlexaResponse": {
+        "alexa.AlexaResponse": {
             "type": "object",
             "properties": {
                 "mainText": {
@@ -238,7 +238,15 @@ const docTemplate = `{
                 }
             }
         },
-        "model.DailyAverage": {
+        "api.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "price.DailyAverage": {
             "type": "object",
             "properties": {
                 "average": {
@@ -249,7 +257,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.DailyPriceInfo": {
+        "price.DailyPriceInfo": {
             "type": "object",
             "properties": {
                 "cheapestPeriods": {
@@ -257,7 +265,7 @@ const docTemplate = `{
                     "items": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/definitions/model.Price"
+                            "$ref": "#/definitions/price.Price"
                         }
                     }
                 },
@@ -265,21 +273,21 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "dayRating": {
-                    "$ref": "#/definitions/model.DayRating"
+                    "$ref": "#/definitions/price.DayRating"
                 },
                 "expensivePeriods": {
                     "type": "array",
                     "items": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/definitions/model.Price"
+                            "$ref": "#/definitions/price.Price"
                         }
                     }
                 },
                 "prices": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.Price"
+                        "$ref": "#/definitions/price.Price"
                     }
                 },
                 "thirtyDayAverage": {
@@ -287,7 +295,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.DayRating": {
+        "price.DayRating": {
             "type": "string",
             "enum": [
                 ""
@@ -296,15 +304,7 @@ const docTemplate = `{
                 "Nil"
             ]
         },
-        "model.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.Price": {
+        "price.Price": {
             "type": "object",
             "properties": {
                 "dateTime": {

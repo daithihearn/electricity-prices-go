@@ -1,7 +1,7 @@
-package client
+package ree
 
 import (
-	"electricity-prices/pkg/model"
+	"electricity-prices/pkg/price"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,7 +13,7 @@ import (
 const urlTemplate = "https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real?time_trunc=hour&start_date=%sT00:00&end_date=%sT23:59"
 
 // GetPricesFromRee returns the prices for the given date from the REE API
-func GetPricesFromRee(date time.Time) ([]model.Price, bool, error) {
+func GetPricesFromRee(date time.Time) ([]price.Price, bool, error) {
 	// Parse date to day string
 	day := date.Format("2006-01-02")
 
@@ -33,7 +33,7 @@ func GetPricesFromRee(date time.Time) ([]model.Price, bool, error) {
 	// Check if the status code indicates success
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		// Initialize an instance of PVPC
-		var res model.ReeResponse
+		var res ReeResponse
 
 		// Parse the JSON response body into the PVPC struct
 		err := json.Unmarshal(body, &res)
@@ -47,7 +47,7 @@ func GetPricesFromRee(date time.Time) ([]model.Price, bool, error) {
 			return nil, false, fmt.Errorf("error returned from API: %v", res.Errors[0])
 		}
 
-		var included model.ReeIncluded
+		var included ReeIncluded
 		for _, inc := range res.Included {
 			if inc.ID == "1001" {
 				included = inc
@@ -58,10 +58,10 @@ func GetPricesFromRee(date time.Time) ([]model.Price, bool, error) {
 			return nil, true, nil
 		}
 
-		prices := make([]model.Price, len(included.Attributes.Values))
+		prices := make([]price.Price, len(included.Attributes.Values))
 
 		for i, p := range included.Attributes.Values {
-			prices[i] = model.Price{
+			prices[i] = price.Price{
 				DateTime: p.DateTime,
 				Price:    p.Price / 1000,
 			}

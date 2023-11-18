@@ -1,8 +1,7 @@
-package service
+package alexa
 
 import (
 	"crypto/x509"
-	"electricity-prices/pkg/model"
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
@@ -12,7 +11,7 @@ import (
 	"time"
 )
 
-func ValidateAlexaRequest(r *http.Request, rawBody string, body model.AlexaRequest) error {
+func ValidateAlexaRequest(r *http.Request, rawBody string, body AlexaRequest) error {
 	signatureCertChainURL := r.Header.Get("SignatureCertChainUrl")
 	signature := r.Header.Get("Signature")
 	timestamp := body.Request.Timestamp
@@ -81,10 +80,4 @@ func validateCertificate(cert *x509.Certificate) error {
 
 func validateSignature(cert *x509.Certificate, signature, data []byte) error {
 	return cert.CheckSignature(x509.SHA1WithRSA, data, signature)
-}
-
-type AlexaRequest struct {
-	Request struct {
-		Timestamp string `json:"timestamp"`
-	} `json:"request"`
 }

@@ -1,7 +1,6 @@
-package utils
+package price
 
 import (
-	"electricity-prices/pkg/model"
 	"encoding/json"
 	"math"
 	"os"
@@ -31,15 +30,15 @@ func readJSONFromFile(filePath string, result interface{}) error {
 func TestCalculateAverage(t *testing.T) {
 	testCases := []struct {
 		name     string
-		prices   []model.Price
+		prices   []Price
 		expected float64
 	}{
-		{"Empty slice", []model.Price{}, 0.0},
-		{"One price", []model.Price{{Price: 1.0}}, 1.0},
-		{"Two prices", []model.Price{{Price: 1.0}, {Price: 2.0}}, 1.5},
-		{"Three prices", []model.Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 2.0},
-		{"Mixed order", []model.Price{{Price: 3.0}, {Price: 1.0}, {Price: 2.0}}, 2.0},
-		{"Negative", []model.Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.333333},
+		{"Empty slice", []Price{}, 0.0},
+		{"One price", []Price{{Price: 1.0}}, 1.0},
+		{"Two prices", []Price{{Price: 1.0}, {Price: 2.0}}, 1.5},
+		{"Three prices", []Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 2.0},
+		{"Mixed order", []Price{{Price: 3.0}, {Price: 1.0}, {Price: 2.0}}, 2.0},
+		{"Negative", []Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.333333},
 	}
 
 	for _, tc := range testCases {
@@ -53,7 +52,7 @@ func TestCalculateAverage(t *testing.T) {
 }
 
 func TestSortDailyAverages(t *testing.T) {
-	averages := []model.DailyAverage{
+	averages := []DailyAverage{
 		{Date: "2020-01-01"},
 		{Date: "2020-01-03"},
 		{Date: "2020-01-02"},
@@ -79,12 +78,12 @@ func TestCalculateDayRating(t *testing.T) {
 		name         string
 		dayAvg       float64
 		thirtyDayAvg float64
-		expected     model.DayRating
+		expected     DayRating
 	}{
-		{"Good", 0.2, 0.1, model.Bad},
-		{"Bad", 0.1, 0.2, model.Good},
-		{"Normal", 0.1, 0.11, model.Normal},
-		{"Zeros", 0.0, 0.0, model.Normal},
+		{"Good", 0.2, 0.1, Bad},
+		{"Bad", 0.1, 0.2, Good},
+		{"Normal", 0.1, 0.11, Normal},
+		{"Zeros", 0.0, 0.0, Normal},
 	}
 
 	for _, tc := range testCases {
@@ -126,14 +125,14 @@ func TestCalculateCombinedAverage(t *testing.T) {
 func TestGetMinPrice(t *testing.T) {
 	testCases := []struct {
 		name     string
-		prices   []model.Price
+		prices   []Price
 		expected float64
 	}{
-		{"Empty slice", []model.Price{}, 0.0},
-		{"One price", []model.Price{{Price: 1.0}}, 1.0},
-		{"Two prices", []model.Price{{Price: 1.0}, {Price: 2.0}}, 1.0},
-		{"Three prices", []model.Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0},
-		{"Mixed order", []model.Price{{Price: 3.0}, {Price: 1.0}, {Price: 2.0}}, 1.0},
+		{"Empty slice", []Price{}, 0.0},
+		{"One price", []Price{{Price: 1.0}}, 1.0},
+		{"Two prices", []Price{{Price: 1.0}, {Price: 2.0}}, 1.0},
+		{"Three prices", []Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0},
+		{"Mixed order", []Price{{Price: 3.0}, {Price: 1.0}, {Price: 2.0}}, 1.0},
 	}
 
 	for _, tc := range testCases {
@@ -149,16 +148,16 @@ func TestGetMinPrice(t *testing.T) {
 func TestGetMinAndMaxPrices(t *testing.T) {
 	testCases := []struct {
 		name        string
-		prices      []model.Price
+		prices      []Price
 		expectedMin float64
 		expectedMax float64
 	}{
-		{"Empty slice", []model.Price{}, 0.0, 0.0},
-		{"One price", []model.Price{{Price: 1.0}}, 1.0, 1.0},
-		{"Two prices", []model.Price{{Price: 1.0}, {Price: 2.0}}, 1.0, 2.0},
-		{"Three prices", []model.Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, 3.0},
-		{"Mixed order", []model.Price{{Price: 3.0}, {Price: 1.0}, {Price: 2.0}}, 1.0, 3.0},
-		{"Negative", []model.Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, -1.0, 3.0},
+		{"Empty slice", []Price{}, 0.0, 0.0},
+		{"One price", []Price{{Price: 1.0}}, 1.0, 1.0},
+		{"Two prices", []Price{{Price: 1.0}, {Price: 2.0}}, 1.0, 2.0},
+		{"Three prices", []Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, 3.0},
+		{"Mixed order", []Price{{Price: 3.0}, {Price: 1.0}, {Price: 2.0}}, 1.0, 3.0},
+		{"Negative", []Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, -1.0, 3.0},
 	}
 
 	for _, tc := range testCases {
@@ -177,14 +176,14 @@ func TestGetMinAndMaxPrices(t *testing.T) {
 func TestGetMaxPrice(t *testing.T) {
 	testCases := []struct {
 		name     string
-		prices   []model.Price
+		prices   []Price
 		expected float64
 	}{
-		{"Empty slice", []model.Price{}, 0.0},
-		{"One price", []model.Price{{Price: 1.0}}, 1.0},
-		{"Two prices", []model.Price{{Price: 1.0}, {Price: 2.0}}, 2.0},
-		{"Three prices", []model.Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 3.0},
-		{"Mixed order", []model.Price{{Price: 3.0}, {Price: 1.0}, {Price: 2.0}}, 3.0},
+		{"Empty slice", []Price{}, 0.0},
+		{"One price", []Price{{Price: 1.0}}, 1.0},
+		{"Two prices", []Price{{Price: 1.0}, {Price: 2.0}}, 2.0},
+		{"Three prices", []Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 3.0},
+		{"Mixed order", []Price{{Price: 3.0}, {Price: 1.0}, {Price: 2.0}}, 3.0},
 	}
 
 	for _, tc := range testCases {
@@ -246,23 +245,23 @@ func TestCalculateMaxVariance(t *testing.T) {
 }
 
 func TestCalculateCheapVariance(t *testing.T) {
-	var normalPeriod []model.Price
-	err := readJSONFromFile("../../test/resources/normal-day.json", &normalPeriod)
+	var normalPeriod []Price
+	err := readJSONFromFile("testdata/normal-day.json", &normalPeriod)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 
 	testCases := []struct {
 		name         string
-		prices       []model.Price
+		prices       []Price
 		thirtyDayAvg float64
 		expected     float64
 	}{
-		{"Empty slice", []model.Price{}, 1.0, 0.0},
-		{"One price", []model.Price{{Price: 1.0}}, 1.0, 0.0},
-		{"Two prices", []model.Price{{Price: 1.0}, {Price: 2.0}}, 1.0, 0.166667},
-		{"Three prices", []model.Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, 0.333333},
-		{"Negative", []model.Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, 1.111111},
+		{"Empty slice", []Price{}, 1.0, 0.0},
+		{"One price", []Price{{Price: 1.0}}, 1.0, 0.0},
+		{"Two prices", []Price{{Price: 1.0}, {Price: 2.0}}, 1.0, 0.166667},
+		{"Three prices", []Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, 0.333333},
+		{"Negative", []Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, 1.111111},
 		{"normal day", normalPeriod, 0.15, 0.016479999999999998},
 	}
 
@@ -277,23 +276,23 @@ func TestCalculateCheapVariance(t *testing.T) {
 }
 
 func TestCalculateExpensiveVariance(t *testing.T) {
-	var normalPeriod []model.Price
-	err := readJSONFromFile("../../test/resources/normal-day.json", &normalPeriod)
+	var normalPeriod []Price
+	err := readJSONFromFile("testdata/normal-day.json", &normalPeriod)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 
 	testCases := []struct {
 		name         string
-		prices       []model.Price
+		prices       []Price
 		thirtyDayAvg float64
 		expected     float64
 	}{
-		{"Empty slice", []model.Price{}, 1.0, 0.0},
-		{"One price", []model.Price{{Price: 1.0}}, 1.0, 0.0},
-		{"Two prices", []model.Price{{Price: 1.0}, {Price: 2.0}}, 1.0, 0.333333},
-		{"Three prices", []model.Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, 0.666667},
-		{"Negative", []model.Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, 0.888889},
+		{"Empty slice", []Price{}, 1.0, 0.0},
+		{"One price", []Price{{Price: 1.0}}, 1.0, 0.0},
+		{"Two prices", []Price{{Price: 1.0}, {Price: 2.0}}, 1.0, 0.333333},
+		{"Three prices", []Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, 0.666667},
+		{"Negative", []Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, 0.888889},
 		{"normal day", normalPeriod, 0.15, 0.032959999999999996},
 	}
 
@@ -308,29 +307,29 @@ func TestCalculateExpensiveVariance(t *testing.T) {
 }
 
 func TestCalculateCheapPeriods(t *testing.T) {
-	var cheapPeriod []model.Price
-	err := readJSONFromFile("../../test/resources/cheap-day.json", &cheapPeriod)
+	var cheapPeriod []Price
+	err := readJSONFromFile("testdata/cheap-day.json", &cheapPeriod)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 
-	var cheapPeriodResult [][]model.Price
-	err = readJSONFromFile("../../test/resources/cheap-day-cp.json", &cheapPeriodResult)
+	var cheapPeriodResult [][]Price
+	err = readJSONFromFile("testdata/cheap-day-cp.json", &cheapPeriodResult)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 
 	testCases := []struct {
 		name         string
-		prices       []model.Price
+		prices       []Price
 		thirtyDayAvg float64
-		expected     [][]model.Price
+		expected     [][]Price
 	}{
-		{"Empty slice", []model.Price{}, 1.0, [][]model.Price{}},
-		{"One price", []model.Price{{Price: 1.0}}, 1.0, [][]model.Price{{model.Price{Price: 1.0}}}},
-		{"Two prices", []model.Price{{Price: 1.0}, {Price: 2.0}}, 1.0, [][]model.Price{{model.Price{Price: 1.0}}}},
-		{"Three prices", []model.Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, [][]model.Price{{model.Price{Price: 1.0}}}},
-		{"Negative", []model.Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, [][]model.Price{{model.Price{Price: -1.0}}}},
+		{"Empty slice", []Price{}, 1.0, [][]Price{}},
+		{"One price", []Price{{Price: 1.0}}, 1.0, [][]Price{{Price{Price: 1.0}}}},
+		{"Two prices", []Price{{Price: 1.0}, {Price: 2.0}}, 1.0, [][]Price{{Price{Price: 1.0}}}},
+		{"Three prices", []Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, [][]Price{{Price{Price: 1.0}}}},
+		{"Negative", []Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, [][]Price{{Price{Price: -1.0}}}},
 		{"periodOne", cheapPeriod, 0.15, cheapPeriodResult},
 	}
 
@@ -355,24 +354,24 @@ func TestCalculateCheapPeriods(t *testing.T) {
 }
 
 func TestCalculateExpensivePeriods(t *testing.T) {
-	var cheapDay []model.Price
-	err := readJSONFromFile("../../test/resources/cheap-day.json", &cheapDay)
+	var cheapDay []Price
+	err := readJSONFromFile("testdata/cheap-day.json", &cheapDay)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 
 	testCases := []struct {
 		name         string
-		prices       []model.Price
+		prices       []Price
 		thirtyDayAvg float64
-		expected     [][]model.Price
+		expected     [][]Price
 	}{
-		{"Empty slice", []model.Price{}, 1.0, [][]model.Price{}},
-		{"One price", []model.Price{{Price: 1.0}}, 1.0, [][]model.Price{{model.Price{Price: 1.0}}}},
-		{"Two prices", []model.Price{{Price: 1.0}, {Price: 2.0}}, 1.0, [][]model.Price{{model.Price{Price: 2.0}}}},
-		{"Three prices", []model.Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, [][]model.Price{{model.Price{Price: 3.0}}}},
-		{"Negative", []model.Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, [][]model.Price{{model.Price{Price: 3.0}}}},
-		{"periodOne", cheapDay, 0.15, [][]model.Price{}},
+		{"Empty slice", []Price{}, 1.0, [][]Price{}},
+		{"One price", []Price{{Price: 1.0}}, 1.0, [][]Price{{Price{Price: 1.0}}}},
+		{"Two prices", []Price{{Price: 1.0}, {Price: 2.0}}, 1.0, [][]Price{{Price{Price: 2.0}}}},
+		{"Three prices", []Price{{Price: 1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, [][]Price{{Price{Price: 3.0}}}},
+		{"Negative", []Price{{Price: -1.0}, {Price: 2.0}, {Price: 3.0}}, 1.0, [][]Price{{Price{Price: 3.0}}}},
+		{"periodOne", cheapDay, 0.15, [][]Price{}},
 	}
 
 	for _, tc := range testCases {
@@ -398,29 +397,29 @@ func TestCalculateExpensivePeriods(t *testing.T) {
 func TestGetNextPeriod(t *testing.T) {
 
 	date := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	price1 := model.Price{Price: 1.0, DateTime: date}
-	price2 := model.Price{Price: 2.0, DateTime: date.Add(time.Hour)}
-	price3 := model.Price{Price: 3.0, DateTime: date.Add(2 * time.Hour)}
-	price4 := model.Price{Price: 4.0, DateTime: date.Add(3 * time.Hour)}
-	price5 := model.Price{Price: 5.0, DateTime: date.Add(4 * time.Hour)}
-	price6 := model.Price{Price: 6.0, DateTime: date.Add(5 * time.Hour)}
-	price7 := model.Price{Price: 7.0, DateTime: date.Add(6 * time.Hour)}
+	price1 := Price{Price: 1.0, DateTime: date}
+	price2 := Price{Price: 2.0, DateTime: date.Add(time.Hour)}
+	price3 := Price{Price: 3.0, DateTime: date.Add(2 * time.Hour)}
+	price4 := Price{Price: 4.0, DateTime: date.Add(3 * time.Hour)}
+	price5 := Price{Price: 5.0, DateTime: date.Add(4 * time.Hour)}
+	price6 := Price{Price: 6.0, DateTime: date.Add(5 * time.Hour)}
+	price7 := Price{Price: 7.0, DateTime: date.Add(6 * time.Hour)}
 
 	testCases := []struct {
 		name            string
-		periods         [][]model.Price
+		periods         [][]Price
 		date            time.Time
-		expectedP       []model.Price
+		expectedP       []Price
 		expectedStarted bool
 	}{
-		{"Empty slice", [][]model.Price{}, date, []model.Price{}, false},
-		{"One period in future", [][]model.Price{{price2}}, date, []model.Price{price2}, false},
-		{"One period in past", [][]model.Price{{price2}}, date.Add(5 * time.Hour), nil, false},
-		{"One period that has started", [][]model.Price{{price1, price2, price3, price4}}, date.Add(time.Hour), []model.Price{price1, price2, price3, price4}, true},
-		{"Two periods both in future", [][]model.Price{{price2}, {price5, price6, price7}}, date, []model.Price{price2}, false},
-		{"Two periods one in future", [][]model.Price{{price2}, {price6, price7}}, date.Add(3 * time.Hour), []model.Price{price6, price7}, false},
-		{"Three periods both in past", [][]model.Price{{price2}, {price5, price6, price7}}, date.Add(8 * time.Hour), nil, false},
-		{"Three periods one in the middle", [][]model.Price{{price2}, {price5, price6, price7}}, date.Add(6 * time.Hour), []model.Price{price5, price6, price7}, true},
+		{"Empty slice", [][]Price{}, date, []Price{}, false},
+		{"One period in future", [][]Price{{price2}}, date, []Price{price2}, false},
+		{"One period in past", [][]Price{{price2}}, date.Add(5 * time.Hour), nil, false},
+		{"One period that has started", [][]Price{{price1, price2, price3, price4}}, date.Add(time.Hour), []Price{price1, price2, price3, price4}, true},
+		{"Two periods both in future", [][]Price{{price2}, {price5, price6, price7}}, date, []Price{price2}, false},
+		{"Two periods one in future", [][]Price{{price2}, {price6, price7}}, date.Add(3 * time.Hour), []Price{price6, price7}, false},
+		{"Three periods both in past", [][]Price{{price2}, {price5, price6, price7}}, date.Add(8 * time.Hour), nil, false},
+		{"Three periods one in the middle", [][]Price{{price2}, {price5, price6, price7}}, date.Add(6 * time.Hour), []Price{price5, price6, price7}, true},
 	}
 
 	for _, tc := range testCases {
@@ -469,24 +468,24 @@ func TestFormatPrice(t *testing.T) {
 }
 
 func TestGroupPrices(t *testing.T) {
-	var ndNotGrouped []model.Price
-	err := readJSONFromFile("../../test/resources/normal-day-cp-not-grouped.json", &ndNotGrouped)
+	var ndNotGrouped []Price
+	err := readJSONFromFile("testdata/normal-day-cp-not-grouped.json", &ndNotGrouped)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 
-	var ndGrouped [][]model.Price
-	err = readJSONFromFile("../../test/resources/normal-day-cp.json", &ndGrouped)
+	var ndGrouped [][]Price
+	err = readJSONFromFile("testdata/normal-day-cp.json", &ndGrouped)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 
 	testCases := []struct {
 		name     string
-		prices   []model.Price
-		expected [][]model.Price
+		prices   []Price
+		expected [][]Price
 	}{
-		{"Empty slice", []model.Price{}, [][]model.Price{}},
+		{"Empty slice", []Price{}, [][]Price{}},
 		{"Normal Day - not ordered", ndNotGrouped, ndGrouped},
 	}
 
@@ -512,15 +511,15 @@ func TestGroupPrices(t *testing.T) {
 }
 
 func TestCalculateDailyAverages(t *testing.T) {
-	var cheapDay []model.Price
-	err := readJSONFromFile("../../test/resources/cheap-day.json", &cheapDay)
+	var cheapDay []Price
+	err := readJSONFromFile("testdata/cheap-day.json", &cheapDay)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 	cheapAvg := CalculateAverage(cheapDay)
 
-	var normalDay []model.Price
-	err = readJSONFromFile("../../test/resources/normal-day.json", &normalDay)
+	var normalDay []Price
+	err = readJSONFromFile("testdata/normal-day.json", &normalDay)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
@@ -528,14 +527,14 @@ func TestCalculateDailyAverages(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		prices   []model.Price
-		expected []model.DailyAverage
+		prices   []Price
+		expected []DailyAverage
 	}{
-		{"Empty slice", []model.Price{}, []model.DailyAverage{}},
-		{"Cheap day", cheapDay, []model.DailyAverage{{Date: "2023-11-02", Average: cheapAvg}}},
-		{"Normal day", normalDay, []model.DailyAverage{{Date: "2023-08-18", Average: normalAvg}}},
-		{"Two days", append(cheapDay, normalDay...), []model.DailyAverage{{Date: "2023-08-18", Average: normalAvg}, {Date: "2023-11-02", Average: cheapAvg}}},
-		{"Two days reversed order", append(normalDay, cheapDay...), []model.DailyAverage{{Date: "2023-08-18", Average: normalAvg}, {Date: "2023-11-02", Average: cheapAvg}}},
+		{"Empty slice", []Price{}, []DailyAverage{}},
+		{"Cheap day", cheapDay, []DailyAverage{{Date: "2023-11-02", Average: cheapAvg}}},
+		{"Normal day", normalDay, []DailyAverage{{Date: "2023-08-18", Average: normalAvg}}},
+		{"Two days", append(cheapDay, normalDay...), []DailyAverage{{Date: "2023-08-18", Average: normalAvg}, {Date: "2023-11-02", Average: cheapAvg}}},
+		{"Two days reversed order", append(normalDay, cheapDay...), []DailyAverage{{Date: "2023-08-18", Average: normalAvg}, {Date: "2023-11-02", Average: cheapAvg}}},
 	}
 
 	for _, tc := range testCases {

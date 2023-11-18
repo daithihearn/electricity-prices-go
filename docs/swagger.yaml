@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  model.AlexaResponse:
+  alexa.AlexaResponse:
     properties:
       mainText:
         type: string
@@ -13,50 +13,50 @@ definitions:
       updateDate:
         type: string
     type: object
-  model.DailyAverage:
+  api.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  price.DailyAverage:
     properties:
       average:
         type: number
       date:
         type: string
     type: object
-  model.DailyPriceInfo:
+  price.DailyPriceInfo:
     properties:
       cheapestPeriods:
         items:
           items:
-            $ref: '#/definitions/model.Price'
+            $ref: '#/definitions/price.Price'
           type: array
         type: array
       dayAverage:
         type: number
       dayRating:
-        $ref: '#/definitions/model.DayRating'
+        $ref: '#/definitions/price.DayRating'
       expensivePeriods:
         items:
           items:
-            $ref: '#/definitions/model.Price'
+            $ref: '#/definitions/price.Price'
           type: array
         type: array
       prices:
         items:
-          $ref: '#/definitions/model.Price'
+          $ref: '#/definitions/price.Price'
         type: array
       thirtyDayAverage:
         type: number
     type: object
-  model.DayRating:
+  price.DayRating:
     enum:
     - ""
     type: string
     x-enum-varnames:
     - Nil
-  model.ErrorResponse:
-    properties:
-      message:
-        type: string
-    type: object
-  model.Price:
+  price.Price:
     properties:
       dateTime:
         type: string
@@ -84,15 +84,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.AlexaResponse'
+            $ref: '#/definitions/alexa.AlexaResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.ErrorResponse'
       tags:
       - Alexa
   /alexa-skill:
@@ -107,15 +107,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.AlexaResponse'
+            $ref: '#/definitions/alexa.AlexaResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.ErrorResponse'
       tags:
       - Alexa
   /price:
@@ -135,16 +135,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Price'
+              $ref: '#/definitions/price.Price'
             type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.ErrorResponse'
       tags:
       - Price
   /price/averages:
@@ -164,16 +164,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.DailyAverage'
+              $ref: '#/definitions/price.DailyAverage'
             type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.ErrorResponse'
       tags:
       - Price
   /price/dailyinfo:
@@ -191,15 +191,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.DailyPriceInfo'
+            $ref: '#/definitions/price.DailyPriceInfo'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.ErrorResponse'
       tags:
       - Price
 swagger: "2.0"

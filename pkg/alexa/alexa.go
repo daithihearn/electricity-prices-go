@@ -1,4 +1,4 @@
-package model
+package alexa
 
 type AlexaApplication struct {
 	ApplicationId string `json:"applicationId"`

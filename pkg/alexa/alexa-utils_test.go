@@ -1,7 +1,6 @@
-package utils
+package alexa
 
 import (
-	"electricity-prices/pkg/model"
 	"testing"
 )
 
@@ -10,7 +9,7 @@ func TestWrapAlexaResponse(t *testing.T) {
 		name     string
 		title    string
 		message  string
-		expected model.AlexaResponse
+		expected AlexaResponse
 	}{
 		{
 			name:    "Test WrapAlexaResponse",
@@ -51,7 +50,7 @@ func TestWrapAlexaSkillResponse(t *testing.T) {
 		name     string
 		message  string
 		end      bool
-		expected model.AlexaSkillResponse
+		expected AlexaSkillResponse
 	}{
 		{
 			name:    "End session",

@@ -1,7 +1,7 @@
-package utils
+package price
 
 import (
-	"electricity-prices/pkg/model"
+	"electricity-prices/pkg/date"
 	"fmt"
 	"strings"
 	"time"
@@ -10,20 +10,20 @@ import (
 const ratingVariance = 0.02
 const varianceDivisor = 2.0
 
-func CalculateDailyAverages(prices []model.Price) []model.DailyAverage {
-	averages := make([]model.DailyAverage, 0, len(prices)/24)
+func CalculateDailyAverages(prices []Price) []DailyAverage {
+	averages := make([]DailyAverage, 0, len(prices)/24)
 
 	// Group the prices by date
-	dateMap := make(map[string][]model.Price)
+	dateMap := make(map[string][]Price)
 	for _, price := range prices {
-		dateOnly := ParseToLocalDay(price.DateTime)
+		dateOnly := date.ParseToLocalDay(price.DateTime)
 		dateMap[dateOnly] = append(dateMap[dateOnly], price)
 	}
 
 	// Calculate the average for each day
 	for date, prices := range dateMap {
 		average := CalculateAverage(prices)
-		averages = append(averages, model.DailyAverage{Date: date, Average: average})
+		averages = append(averages, DailyAverage{Date: date, Average: average})
 	}
 
 	// Sort the averages by date
@@ -32,7 +32,7 @@ func CalculateDailyAverages(prices []model.Price) []model.DailyAverage {
 	return averages
 }
 
-func CalculateAverage(prices []model.Price) float64 {
+func CalculateAverage(prices []Price) float64 {
 	if len(prices) == 0 {
 		return 0.0
 	}
@@ -45,29 +45,29 @@ func CalculateAverage(prices []model.Price) float64 {
 
 // CalculateDayRating
 // Calculate the rating for a day based on the daily average and the thirty-day average.
-func CalculateDayRating(dayAvg float64, thirtyDayAvg float64) model.DayRating {
+func CalculateDayRating(dayAvg float64, thirtyDayAvg float64) DayRating {
 
 	variance := dayAvg - thirtyDayAvg
 
 	if variance < -ratingVariance {
-		return model.Good
+		return Good
 	} else if variance > ratingVariance {
-		return model.Bad
+		return Bad
 	}
-	return model.Normal
+	return Normal
 }
 
 // CalculateCheapPeriods
 // Get the cheap periods from a slice of prices.
-func CalculateCheapPeriods(prices []model.Price, thirtyDayAvg float64) [][]model.Price {
+func CalculateCheapPeriods(prices []Price, thirtyDayAvg float64) [][]Price {
 	if len(prices) == 0 {
-		return [][]model.Price{}
+		return [][]Price{}
 	}
 	variance := calculateCheapVariance(prices, thirtyDayAvg)
 	minP := getMinPrice(prices)
 
 	// Filter prices that are below the variance
-	var cheapPeriods []model.Price
+	var cheapPeriods []Price
 	for _, price := range prices {
 		if price.Price <= minP+variance {
 			cheapPeriods = append(cheapPeriods, price)
@@ -80,20 +80,20 @@ func CalculateCheapPeriods(prices []model.Price, thirtyDayAvg float64) [][]model
 
 // CalculateExpensivePeriods
 // Get the expensive periods from a slice of prices.
-func CalculateExpensivePeriods(prices []model.Price, thirtyDayAvg float64) [][]model.Price {
+func CalculateExpensivePeriods(prices []Price, thirtyDayAvg float64) [][]Price {
 	if len(prices) == 0 {
-		return [][]model.Price{}
+		return [][]Price{}
 	}
 	variance := calculateExpensiveVariance(prices, thirtyDayAvg)
 	maxP := getMaxPrice(prices)
 
 	// If the most expensive price would be considered cheap, return empty list
 	if maxP <= thirtyDayAvg-ratingVariance {
-		return [][]model.Price{}
+		return [][]Price{}
 	}
 
 	// Filter prices that are above the variance
-	var expensivePeriods []model.Price
+	var expensivePeriods []Price
 	for _, price := range prices {
 		if maxP-price.Price <= variance {
 			expensivePeriods = append(expensivePeriods, price)
@@ -104,7 +104,7 @@ func CalculateExpensivePeriods(prices []model.Price, thirtyDayAvg float64) [][]m
 	return groupPrices(expensivePeriods)
 }
 
-func sortDailyAverages(averages []model.DailyAverage) {
+func sortDailyAverages(averages []DailyAverage) {
 	// Sort the averages by date
 	for i := 0; i < len(averages); i++ {
 		for j := i + 1; j < len(averages); j++ {
@@ -129,7 +129,7 @@ func calculateCombinedAverage(dayAvg float64, thirtyDayAvg float64) float64 {
 
 // getMinPrice
 // Get the minimum price from a slice of prices.
-func getMinPrice(prices []model.Price) float64 {
+func getMinPrice(prices []Price) float64 {
 	if len(prices) == 0 {
 		return 0.0
 	}
@@ -144,7 +144,7 @@ func getMinPrice(prices []model.Price) float64 {
 
 // getMaxPrice
 // Get the maximum price from a slice of prices.
-func getMaxPrice(prices []model.Price) float64 {
+func getMaxPrice(prices []Price) float64 {
 	if len(prices) == 0 {
 		return 0.0
 	}
@@ -159,7 +159,7 @@ func getMaxPrice(prices []model.Price) float64 {
 
 // getMinAndMaxPrices
 // Get the maximum and minimum prices from a slice of prices.
-func getMinAndMaxPrices(prices []model.Price) (float64, float64) {
+func getMinAndMaxPrices(prices []Price) (float64, float64) {
 	if len(prices) == 0 {
 		return 0.0, 0.0
 	}
@@ -191,7 +191,7 @@ func calculateMaxVariance(minP, maxP float64) float64 {
 // calculateCheapVariance
 // Calculate the variance for a cheap periods.
 // MAX(MIN((dayAvg - cheapestPrice) / varianceDivisor, maxVariance), minVariance)
-func calculateCheapVariance(prices []model.Price, thirtyDayAvg float64) float64 {
+func calculateCheapVariance(prices []Price, thirtyDayAvg float64) float64 {
 	minP, maxP := getMinAndMaxPrices(prices)
 	minVariance := calculateMinVariance(minP, maxP)
 	maxVariance := calculateMaxVariance(minP, maxP)
@@ -209,7 +209,7 @@ func calculateCheapVariance(prices []model.Price, thirtyDayAvg float64) float64 
 // calculateExpensiveVariance
 // Calculate the variance for an expensive periods.
 // MAX(MIN((mostExpensivePrice - dayAvg) / varianceDivisor, maxVariance), minVariance)
-func calculateExpensiveVariance(prices []model.Price, thirtyDayAvg float64) float64 {
+func calculateExpensiveVariance(prices []Price, thirtyDayAvg float64) float64 {
 	minP, maxP := getMinAndMaxPrices(prices)
 	minVariance := calculateMinVariance(minP, maxP)
 	maxVariance := calculateMaxVariance(minP, maxP)
@@ -226,7 +226,7 @@ func calculateExpensiveVariance(prices []model.Price, thirtyDayAvg float64) floa
 
 // groupPrices
 // Group consecutive prices into periods.
-func groupPrices(cheapPrices []model.Price) [][]model.Price {
+func groupPrices(cheapPrices []Price) [][]Price {
 	// Order the prices by date ascending
 	for i := 0; i < len(cheapPrices); i++ {
 		for j := i + 1; j < len(cheapPrices); j++ {
@@ -238,10 +238,10 @@ func groupPrices(cheapPrices []model.Price) [][]model.Price {
 		}
 	}
 
-	var result [][]model.Price
+	var result [][]Price
 	i := 0
 	for i < len(cheapPrices) {
-		cheapPeriod := []model.Price{cheapPrices[i]}
+		cheapPeriod := []Price{cheapPrices[i]}
 		j := i + 1
 		for j < len(cheapPrices) && cheapPrices[j].DateTime.Sub(cheapPeriod[len(cheapPeriod)-1].DateTime) == time.Hour {
 			cheapPeriod = append(cheapPeriod, cheapPrices[j])
@@ -256,7 +256,7 @@ func groupPrices(cheapPrices []model.Price) [][]model.Price {
 // GetNextPeriod
 // Given the provided date and price periods, return the next period.
 // Also return whether the next period has started yet or not
-func GetNextPeriod(prices [][]model.Price, date time.Time) ([]model.Price, bool) {
+func GetNextPeriod(prices [][]Price, date time.Time) ([]Price, bool) {
 
 	// Get the next cheap period
 	for _, period := range prices {

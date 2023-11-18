@@ -1,9 +1,9 @@
-package db
+package price
 
 import (
 	"context"
-	"electricity-prices/pkg/model"
-	"electricity-prices/pkg/utils"
+	"electricity-prices/pkg/date"
+	"electricity-prices/pkg/db"
 	"fmt"
 	"log"
 	"time"
@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func GetPrice(now time.Time) (model.Price, error) {
+func GetPrice(ctx context.Context, now time.Time) (Price, error) {
 	// Set to the start of the current hour
 	hour := now.Truncate(time.Hour)
 
@@ -23,23 +23,34 @@ func GetPrice(now time.Time) (model.Price, error) {
 		"dateTime": hour,
 	}
 
-	var price model.Price
-	err := GetCollection().FindOne(context.Background(), filter).Decode(&price)
+	var price Price
+	col, err := db.GetCollection(ctx)
+	if err != nil {
+		return Price{}, err
+	}
+	err = col.FindOne(ctx, filter).Decode(&price)
+	if err != nil {
+		return Price{}, err
+	}
 
 	return price, err
 }
 
-func SavePrices(prices []model.Price) error {
-	collection := GetCollection()
+func SavePrices(ctx context.Context, prices []Price) error {
+	col, err := db.GetCollection(ctx)
+
+	if err != nil {
+		return err
+	}
 
 	var documents []interface{}
 	for _, price := range prices {
 		documents = append(documents, price)
 	}
 
-	client, err := GetMongoClient()
+	client, err := db.GetMongoClient(ctx)
 	if err != nil {
-		log.Fatalf("Error getting mongo client: %v", err)
+		log.Fatalf("Error getting mongo ree: %v", err)
 	}
 
 	// Insert the documents
@@ -48,17 +59,17 @@ func SavePrices(prices []model.Price) error {
 	if err != nil {
 		log.Fatalf("Error starting session: %v", err)
 	}
-	defer session.EndSession(context.Background())
+	defer session.EndSession(ctx)
 
 	// Define the work to be done in the transaction.
-	txnErr := mongo.WithSession(context.Background(), session, func(sc mongo.SessionContext) error {
+	txnErr := mongo.WithSession(ctx, session, func(sc mongo.SessionContext) error {
 		// Start the transaction
 		err := session.StartTransaction()
 		if err != nil {
 			return err
 		}
 
-		_, err = collection.InsertMany(context.Background(), documents)
+		_, err = col.InsertMany(ctx, documents)
 		if err != nil {
 			// If there's an error, abort the transaction and return the error.
 			session.AbortTransaction(sc)
@@ -77,9 +88,13 @@ func SavePrices(prices []model.Price) error {
 	return nil
 }
 
-func GetPrices(start time.Time, end time.Time) ([]model.Price, error) {
+func getPrices(ctx context.Context, start time.Time, end time.Time) ([]Price, error) {
 
-	collection := GetCollection()
+	col, err := db.GetCollection(ctx)
+
+	if err != nil {
+		return nil, err
+	}
 
 	// Create a filter based on the date range
 	filter := bson.M{
@@ -90,17 +105,22 @@ func GetPrices(start time.Time, end time.Time) ([]model.Price, error) {
 	}
 
 	findOptions := options.Find()
-	var prices = make([]model.Price, 0)
+	var prices = make([]Price, 0)
 
-	cur, err := collection.Find(context.TODO(), filter, findOptions)
+	cur, err := col.Find(ctx, filter, findOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	defer cur.Close(context.TODO())
+	defer func(cur *mongo.Cursor, ctx context.Context) {
+		err := cur.Close(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(cur, ctx)
 
-	for cur.Next(context.TODO()) {
-		var price model.Price
+	for cur.Next(ctx) {
+		var price Price
 		err := cur.Decode(&price)
 		if err != nil {
 			log.Println("Error decoding price:", err)
@@ -116,8 +136,8 @@ func GetPrices(start time.Time, end time.Time) ([]model.Price, error) {
 	return prices, nil
 }
 
-func GetThirtyDayAverage(date time.Time) (float64, error) {
-	start, end := utils.ParseStartAndEndTimes(date, 30)
+func GetThirtyDayAverage(ctx context.Context, t time.Time) (float64, error) {
+	start, end := date.ParseStartAndEndTimes(t, 30)
 
 	// Define the aggregation pipeline
 	pipeline := mongo.Pipeline{
@@ -139,7 +159,7 @@ func GetThirtyDayAverage(date time.Time) (float64, error) {
 		}}},
 	}
 
-	cursor, err := ExecutePipeline(pipeline)
+	cursor, err := db.ExecutePipeline(ctx, pipeline)
 	if err != nil {
 		return 0, err
 	}
@@ -149,10 +169,10 @@ func GetThirtyDayAverage(date time.Time) (float64, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
-	}(cursor, context.TODO())
+	}(cursor, ctx)
 
 	var result bson.M
-	if cursor.Next(context.TODO()) {
+	if cursor.Next(ctx) {
 		if err = cursor.Decode(&result); err != nil {
 			return 0, err
 		}
@@ -166,7 +186,7 @@ func GetThirtyDayAverage(date time.Time) (float64, error) {
 	return 0, fmt.Errorf("no results found")
 }
 
-func GetLatestPrice() (model.Price, error) {
+func GetLatestPrice(ctx context.Context) (Price, error) {
 	// Define the aggregation pipeline
 	pipeline := mongo.Pipeline{
 		{{Key: "$sort", Value: bson.M{
@@ -175,9 +195,9 @@ func GetLatestPrice() (model.Price, error) {
 		{{Key: "$limit", Value: 1}},
 	}
 
-	cursor, err := ExecutePipeline(pipeline)
+	cursor, err := db.ExecutePipeline(ctx, pipeline)
 	if err != nil {
-		return model.Price{}, err
+		return Price{}, err
 	}
 
 	defer func(cursor *mongo.Cursor, ctx context.Context) {
@@ -185,15 +205,15 @@ func GetLatestPrice() (model.Price, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
-	}(cursor, context.Background())
+	}(cursor, ctx)
 
-	var result model.Price
-	if cursor.Next(context.Background()) {
+	var result Price
+	if cursor.Next(ctx) {
 		if err = cursor.Decode(&result); err != nil {
-			return model.Price{}, err
+			return Price{}, err
 		}
 		return result, nil
 	}
 
-	return model.Price{}, fmt.Errorf("no results found")
+	return Price{}, fmt.Errorf("no results found")
 }

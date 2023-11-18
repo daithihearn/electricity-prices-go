@@ -1,4 +1,4 @@
-package utils
+package date
 
 import (
 	"testing"
@@ -68,4 +68,26 @@ func TestParseStartAndEndTimes(t *testing.T) {
 		})
 	}
 
+}
+
+func TestParseDate(t *testing.T) {
+	location, _ := time.LoadLocation("Europe/Madrid")
+	testCases := []struct {
+		name     string
+		date     string
+		expected time.Time
+	}{{
+		name:     "Parse date",
+		date:     "2023-01-02",
+		expected: time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+	}}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, _ := ParseDate(tc.date)
+			if !result.Equal(tc.expected) {
+				t.Errorf("Expected %v but was %v", tc.expected, result)
+			}
+		})
+	}
 }
