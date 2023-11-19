@@ -90,7 +90,7 @@ func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaInte
 		rating, err := s.PriceService.GetDayRating(ctx, tomorrow)
 		avg, err2 := s.PriceService.GetDayAverage(ctx, tomorrow)
 		if err != nil || err2 != nil {
-			msg = p.Sprintf("alexa_tomorrow_nodata")
+			msg = s.getTomorrowNoDataMessage(lang)
 		} else {
 			msg = s.getTomorrowRatingMessage(rating, avg, lang)
 		}
@@ -137,11 +137,18 @@ func (s *Service) getTodayNoDataMessage(lang language.Tag) string {
 	return noData
 }
 
+func (s *Service) getTomorrowNoDataMessage(lang language.Tag) string {
+	p := message.NewPrinter(lang)
+	noData := p.Sprintf("alexa_tomorrow_nodata")
+
+	return noData
+}
+
 func (s *Service) getTodayRatingMessage(dayRating price.DayRating, dayAverage float64, lang language.Tag) string {
 	p := message.NewPrinter(lang)
 
 	if dayRating == price.Nil {
-		return ""
+		return s.getTodayNoDataMessage(lang)
 	}
 
 	rating := p.Sprintf(fmt.Sprintf("alexa_rating_%s", strings.ToLower(string(dayRating))))
@@ -154,7 +161,7 @@ func (s *Service) getTomorrowRatingMessage(dayRating price.DayRating, dayAverage
 	p := message.NewPrinter(lang)
 
 	if dayRating == price.Nil {
-		return ""
+		return s.getTomorrowNoDataMessage(lang)
 	}
 
 	rating := p.Sprintf(fmt.Sprintf("alexa_rating_%s", strings.ToLower(string(dayRating))))

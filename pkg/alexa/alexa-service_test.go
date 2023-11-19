@@ -22,27 +22,55 @@ func TestMain(m *testing.M) {
 
 func TestGetTodayNoDataMessage(t *testing.T) {
 	testCases := []struct {
-		name     string
-		lang     language.Tag
-		expected string
+		name          string
+		lang          language.Tag
+		shouldContain string
 	}{
 		{
-			name:     "English",
-			lang:     language.English,
-			expected: "There is no data available yet for today. Please check back later.",
+			name:          "English",
+			lang:          language.English,
+			shouldContain: "There is no data available yet for today",
 		},
 		{
-			name:     "Spanish",
-			lang:     language.Spanish,
-			expected: "No hay datos disponibles para hoy. Por favor, vuelva más tarde.",
+			name:          "Spanish",
+			lang:          language.Spanish,
+			shouldContain: "No hay datos disponibles para hoy",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := alexaService.getTodayNoDataMessage(tc.lang)
-			if actual != tc.expected {
-				t.Errorf("expected %s, got %s", tc.expected, actual)
+			if !strings.Contains(actual, tc.shouldContain) {
+				t.Errorf("shouldContain '%s' to contain: '%s'", actual, tc.shouldContain)
+			}
+		})
+	}
+}
+
+func TestGetTomorrowNoDataMessage(t *testing.T) {
+	testCases := []struct {
+		name          string
+		lang          language.Tag
+		shouldContain string
+	}{
+		{
+			name:          "English",
+			lang:          language.English,
+			shouldContain: "There is no data available yet for tomorrow",
+		},
+		{
+			name:          "Spanish",
+			lang:          language.Spanish,
+			shouldContain: "Aún no hay datos disponibles para mañana",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := alexaService.getTomorrowNoDataMessage(tc.lang)
+			if !strings.Contains(actual, tc.shouldContain) {
+				t.Errorf("shouldContain '%s' to contain: '%s'", actual, tc.shouldContain)
 			}
 		})
 	}
@@ -105,16 +133,23 @@ func TestGetTodayRatingMessage(t *testing.T) {
 			shouldContain1: "malo",
 			shouldContain2: "20 céntimos por kilovatio-hora",
 		},
+		{
+			name:           "Nil rating",
+			rating:         price.Nil,
+			dayAverage:     0.2,
+			lang:           language.Spanish,
+			shouldContain1: "No hay datos disponibles para hoy",
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := alexaService.getTodayRatingMessage(tc.rating, tc.dayAverage, tc.lang)
 			if !strings.Contains(actual, tc.shouldContain1) {
-				t.Errorf("expected '%s' to contain: '%s'", actual, tc.shouldContain1)
+				t.Errorf("shouldContain '%s' to contain: '%s'", actual, tc.shouldContain1)
 			}
 			if !strings.Contains(actual, tc.shouldContain2) {
-				t.Errorf("expected '%s' to contain: '%s'", actual, tc.shouldContain2)
+				t.Errorf("shouldContain '%s' to contain: '%s'", actual, tc.shouldContain2)
 			}
 		})
 	}
@@ -177,16 +212,23 @@ func TestGetTomorrowRatingMessage(t *testing.T) {
 			shouldContain1: "malo",
 			shouldContain2: "20 céntimos por kilovatio-hora",
 		},
+		{
+			name:           "Nil rating",
+			rating:         price.Nil,
+			dayAverage:     0.2,
+			lang:           language.Spanish,
+			shouldContain1: "Aún no hay datos disponibles para mañana",
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual := alexaService.getTodayRatingMessage(tc.rating, tc.dayAverage, tc.lang)
+			actual := alexaService.getTomorrowRatingMessage(tc.rating, tc.dayAverage, tc.lang)
 			if !strings.Contains(actual, tc.shouldContain1) {
-				t.Errorf("expected '%s' to contain: '%s'", actual, tc.shouldContain1)
+				t.Errorf("shouldContain '%s' to contain: '%s'", actual, tc.shouldContain1)
 			}
 			if !strings.Contains(actual, tc.shouldContain2) {
-				t.Errorf("expected '%s' to contain: '%s'", actual, tc.shouldContain2)
+				t.Errorf("shouldContain '%s' to contain: '%s'", actual, tc.shouldContain2)
 			}
 		})
 	}

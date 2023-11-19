@@ -27,19 +27,19 @@ func TestWrapAlexaResponse(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := WrapAlexaResponse(tc.title, tc.message)
 			if actual.TitleText != tc.title {
-				t.Errorf("expected %s, got %s", tc.title, actual.TitleText)
+				t.Errorf("shouldContain %s, got %s", tc.title, actual.TitleText)
 			}
 			if actual.MainText != tc.message {
-				t.Errorf("expected %s, got %s", tc.message, actual.MainText)
+				t.Errorf("shouldContain %s, got %s", tc.message, actual.MainText)
 			}
 			if actual.RedirectionUrl != "https://elec.daithiapp.com/" {
-				t.Errorf("expected https://elec.daithiapp.com/, got %s", actual.RedirectionUrl)
+				t.Errorf("shouldContain https://elec.daithiapp.com/, got %s", actual.RedirectionUrl)
 			}
 			if actual.UpdateDate == "" {
-				t.Errorf("expected non-empty UpdateDate, got %s", actual.UpdateDate)
+				t.Errorf("shouldContain non-empty UpdateDate, got %s", actual.UpdateDate)
 			}
 			if actual.Uid == "" {
-				t.Errorf("expected non-empty Uid, got %s", actual.Uid)
+				t.Errorf("shouldContain non-empty Uid, got %s", actual.Uid)
 			}
 		})
 	}
@@ -68,16 +68,16 @@ func TestWrapAlexaSkillResponse(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := WrapAlexaSkillResponse(tc.message, tc.end)
 			if actual.Version != "1.0" {
-				t.Errorf("expected 1.0, got %s", actual.Version)
+				t.Errorf("shouldContain 1.0, got %s", actual.Version)
 			}
 			if actual.Response.OutputSpeech.Type != "PlainText" {
-				t.Errorf("expected PlainText, got %s", actual.Response.OutputSpeech.Type)
+				t.Errorf("shouldContain PlainText, got %s", actual.Response.OutputSpeech.Type)
 			}
 			if actual.Response.OutputSpeech.Text != tc.message {
-				t.Errorf("expected %s, got %s", tc.message, actual.Response.OutputSpeech.Text)
+				t.Errorf("shouldContain %s, got %s", tc.message, actual.Response.OutputSpeech.Text)
 			}
 			if actual.Response.ShouldEndSession != tc.end {
-				t.Errorf("expected %t, got %t", tc.end, actual.Response.ShouldEndSession)
+				t.Errorf("shouldContain %t, got %t", tc.end, actual.Response.ShouldEndSession)
 			}
 		})
 	}
