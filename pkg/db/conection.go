@@ -58,15 +58,6 @@ func GetCollection(ctx context.Context) (*mongo.Collection, error) {
 	return collection, nil
 }
 
-func ExecutePipeline(ctx context.Context, pipeline mongo.Pipeline) (*mongo.Cursor, error) {
-	collection, err := GetCollection(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return collection.Aggregate(ctx, pipeline)
-}
-
 func CloseMongoConnection(ctx context.Context) error {
 	if clientInstance != nil {
 		return clientInstance.Disconnect(ctx)
