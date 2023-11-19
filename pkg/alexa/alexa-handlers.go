@@ -2,9 +2,9 @@ package alexa
 
 import (
 	"electricity-prices/pkg/api"
+	"electricity-prices/pkg/i18n"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/text/language"
 	"io"
 	"net/http"
 	"time"
@@ -25,11 +25,8 @@ type Handler struct {
 // @Failure 500 {object} api.ErrorResponse
 // @Router /alexa [get]
 func (s *Handler) GetFullFeed(c *gin.Context) {
-	lang, err := language.Parse(c.DefaultQuery("lang", "es"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, api.ErrorResponse{Message: "Failed to parse language. Ensure it is in the format es or en."})
-		return
-	}
+	// Parse language from request
+	lang := i18n.ParseLanguage(c.DefaultQuery("lang", "es"))
 
 	now := time.Now()
 
@@ -77,12 +74,9 @@ func (s *Handler) ProcessSkillRequest(c *gin.Context) {
 		return
 	}
 
-	// Get Locale
+	// Parse language from request
 	locale := request.Request.Locale
-	lang, err := language.Parse(locale)
-	if err != nil {
-		lang = language.Spanish
-	}
+	lang := i18n.ParseLanguage(locale)
 
 	// Get the context from the request
 	ctx := c.Request.Context()
