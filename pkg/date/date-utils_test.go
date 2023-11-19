@@ -73,18 +73,165 @@ func TestParseStartAndEndTimes(t *testing.T) {
 func TestParseDate(t *testing.T) {
 	location, _ := time.LoadLocation("Europe/Madrid")
 	testCases := []struct {
-		name     string
-		date     string
-		expected time.Time
+		name          string
+		date          string
+		expected      time.Time
+		errorExpected bool
 	}{{
-		name:     "Parse date",
-		date:     "2023-01-02",
-		expected: time.Date(2023, 1, 2, 0, 0, 0, 0, location),
-	}}
+		name:          "Parse date",
+		date:          "2023-01-02",
+		expected:      time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+		errorExpected: false,
+	},
+		{
+			name:          "Invalid date",
+			date:          "2023-01-02-01",
+			expected:      time.Time{},
+			errorExpected: true,
+		}}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, _ := ParseDate(tc.date)
+			result, err := ParseDate(tc.date)
+			if !result.Equal(tc.expected) {
+				t.Errorf("Expected %v but was %v", tc.expected, result)
+			}
+			if tc.errorExpected && err == nil {
+				t.Errorf("Expected error but was nil")
+			}
+		})
+	}
+}
+
+func TestParseToLocalDay(t *testing.T) {
+	location, _ := time.LoadLocation("Europe/Madrid")
+	testCases := []struct {
+		name     string
+		date     time.Time
+		expected string
+	}{
+		{
+			name:     "Parse to local day",
+			date:     time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+			expected: "2023-01-02",
+		},
+		{
+			name:     "UTC different day",
+			date:     time.Date(2023, 1, 1, 23, 59, 59, 0, time.UTC),
+			expected: "2023-01-02",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := ParseToLocalDay(tc.date)
+			if result != tc.expected {
+				t.Errorf("Expected %v but was %v", tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestFormatTime(t *testing.T) {
+	location, _ := time.LoadLocation("Europe/Madrid")
+	testCases := []struct {
+		name     string
+		date     time.Time
+		expected string
+	}{
+		{
+			name:     "Format time",
+			date:     time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+			expected: "12 AM",
+		},
+		{
+			name:     "Format time",
+			date:     time.Date(2023, 1, 2, 12, 0, 0, 0, location),
+			expected: "12 PM",
+		},
+		{
+			name:     "Format time",
+			date:     time.Date(2023, 1, 2, 23, 0, 0, 0, location),
+			expected: "11 PM",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := FormatTime(tc.date)
+			if result != tc.expected {
+				t.Errorf("Expected %v but was %v", tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestSameHour(t *testing.T) {
+	location, _ := time.LoadLocation("Europe/Madrid")
+	testCases := []struct {
+		name     string
+		date1    time.Time
+		date2    time.Time
+		expected bool
+	}{
+		{
+			name:     "Same hour",
+			date1:    time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+			date2:    time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+			expected: true,
+		},
+		{
+			name:     "Same hour",
+			date1:    time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+			date2:    time.Date(2023, 1, 2, 1, 0, 0, 0, location),
+			expected: false,
+		},
+		{
+			name:     "Same hour",
+			date1:    time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+			date2:    time.Date(2023, 1, 3, 0, 0, 0, 0, location),
+			expected: false,
+		},
+		{
+			name:     "Same hour",
+			date1:    time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+			date2:    time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
+			expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := SameHour(tc.date1, tc.date2)
+			if result != tc.expected {
+				t.Errorf("Expected %v but was %v", tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestStartOfDay(t *testing.T) {
+	location, _ := time.LoadLocation("Europe/Madrid")
+	testCases := []struct {
+		name     string
+		date     time.Time
+		expected time.Time
+	}{
+		{
+			name:     "Start of day",
+			date:     time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+			expected: time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+		},
+		{
+			name:     "Start of day",
+			date:     time.Date(2023, 1, 2, 23, 59, 59, 0, location),
+			expected: time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := StartOfDay(tc.date)
 			if !result.Equal(tc.expected) {
 				t.Errorf("Expected %v but was %v", tc.expected, result)
 			}
