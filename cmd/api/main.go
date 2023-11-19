@@ -7,8 +7,11 @@ package main
 import (
 	"context"
 	_ "electricity-prices/docs"
-	"electricity-prices/pkg/api"
+	"electricity-prices/pkg/alexa"
 	"electricity-prices/pkg/db"
+	"electricity-prices/pkg/i18n"
+	"electricity-prices/pkg/price"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -51,6 +54,20 @@ func main() {
 		os.Exit(0)
 	}()
 
+	// Initialise Translations
+	i18n.InitialiseTranslations()
+
+	// Configure services
+	col, err := db.GetCollection(ctx)
+	if err != nil {
+		cancel()
+		log.Fatal("Failed to get collection: ", err)
+	}
+	priceService := price.Service{Collection: col}
+	priceHandler := price.Handler{PriceService: priceService}
+	alexaService := alexa.Service{PriceService: priceService}
+	alexaHandler := alexa.Handler{AlexaService: alexaService}
+
 	// Set up the API routes.
 	router := gin.Default()
 
@@ -64,11 +81,11 @@ func main() {
 	router.Use(cors.New(config))
 
 	// Configure the routes
-	router.GET("/api/v1/price", api.GetPrices)
-	router.GET("/api/v1/price/averages", api.GetThirtyDayAverages)
-	router.GET("/api/v1/price/dailyinfo", api.GetDailyInfo)
-	router.GET("/api/v1/alexa", api.GetFullFeed)
-	router.POST("/api/v1/alexa-skill", api.ProcessSkillRequest)
+	router.GET("/api/v1/price", priceHandler.GetPrices)
+	router.GET("/api/v1/price/averages", priceHandler.GetThirtyDayAverages)
+	router.GET("/api/v1/price/dailyinfo", priceHandler.GetDailyInfo)
+	router.GET("/api/v1/alexa", alexaHandler.GetFullFeed)
+	router.POST("/api/v1/alexa-skill", alexaHandler.ProcessSkillRequest)
 
 	// Use the generated docs in the docs package.
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/swagger/doc.json")))
@@ -78,7 +95,7 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	err := router.Run(":" + port)
+	err = router.Run(":" + port)
 	if err != nil {
 		return
 	}

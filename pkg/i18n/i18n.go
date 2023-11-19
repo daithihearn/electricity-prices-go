@@ -32,7 +32,10 @@ func loadTranslations(lang language.Tag, filename string) {
 	}
 
 	for key, value := range translations {
-		message.SetString(lang, key, value)
+		err := message.SetString(lang, key, value)
+		if err != nil {
+			return
+		}
 	}
 }
 

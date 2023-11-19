@@ -9,11 +9,15 @@ import (
 	"time"
 )
 
-func SyncWithAPI(ctx context.Context) {
+type Service struct {
+	PriceService price.Service
+}
+
+func (s *Service) SyncWithAPI(ctx context.Context) {
 	log.Println("Starting to sync with API...")
 
 	// Get last day that was synced from database.
-	p, err := price.GetLatestPrice(ctx)
+	p, err := s.PriceService.GetLatestPrice(ctx)
 	if err != nil {
 		p = price.Price{DateTime: date.StartOfDay(time.Date(2021, 5, 31, 0, 0, 0, 0, time.Local))}
 	}
@@ -46,7 +50,7 @@ func SyncWithAPI(ctx context.Context) {
 		log.Printf("Syncing prices for %s", currentDate.Format("January 2 2006"))
 
 		// Save the prices in the database
-		err = price.SavePrices(ctx, prices)
+		err = s.PriceService.SavePrices(ctx, prices)
 		if err != nil {
 			panic(err)
 		}

@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"electricity-prices/pkg/db"
+	"electricity-prices/pkg/price"
 	"electricity-prices/pkg/sync"
 	"github.com/joho/godotenv"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -40,8 +42,17 @@ func main() {
 		os.Exit(0)
 	}()
 
+	// Configure services
+	col, err := db.GetCollection(ctx)
+	if err != nil {
+		cancel()
+		log.Fatal("Failed to get collection: ", err)
+	}
+	priceService := price.Service{Collection: col}
+	syncService := sync.Service{PriceService: priceService}
+
 	// Sync with the API.
-	sync.SyncWithAPI(ctx)
+	syncService.SyncWithAPI(ctx)
 	cancel()
 
 	// Wait for the cancellation of the context (due to signal handling)
