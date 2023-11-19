@@ -21,8 +21,8 @@ type Handler struct {
 // @Produce  json
 // @Param lang query string false "Language in format es or en"
 // @Success 200 {object} alexa.AlexaResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
 // @Router /alexa [get]
 func (s *Handler) GetFullFeed(c *gin.Context) {
 	lang, err := language.Parse(c.DefaultQuery("lang", "es"))
@@ -55,8 +55,8 @@ func (s *Handler) GetFullFeed(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} alexa.AlexaResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
 // @Router /alexa-skill [post]
 func (s *Handler) ProcessSkillRequest(c *gin.Context) {
 	// Get Raw JSON body

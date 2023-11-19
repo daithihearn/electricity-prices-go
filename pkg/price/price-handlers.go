@@ -20,8 +20,8 @@ type Handler struct {
 // @Produce  json
 // @Param date query string false "Date in format yyyy-MM-dd"
 // @Success 200 {object} []price.Price
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
 // @Router /price [get]
 func (h *Handler) GetPrices(c *gin.Context) {
 
@@ -55,8 +55,8 @@ func (h *Handler) GetPrices(c *gin.Context) {
 // @Produce  json
 // @Param date query string false "Date in format yyyy-MM-dd"
 // @Success 200 {object} []price.DailyAverage
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
 // @Router /price/averages [get]
 func (h *Handler) GetThirtyDayAverages(c *gin.Context) {
 
@@ -89,8 +89,8 @@ func (h *Handler) GetThirtyDayAverages(c *gin.Context) {
 // @Produce  json
 // @Param date query string false "Date in format yyyy-MM-dd"
 // @Success 200 {object} price.DailyPriceInfo
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 400 {object} api.ErrorResponse
+// @Failure 500 {object} api.ErrorResponse
 // @Router /price/dailyinfo [get]
 func (h *Handler) GetDailyInfo(c *gin.Context) {
 
