@@ -1,6 +1,8 @@
 package i18n
 
-import "golang.org/x/text/language"
+import (
+	"golang.org/x/text/language"
+)
 
 var supportedLanguages = []language.Tag{language.English, language.Spanish}
 
@@ -13,8 +15,9 @@ func ParseLanguage(lang string) language.Tag {
 	}
 
 	for _, supportedLang := range supportedLanguages {
-		if l == supportedLang {
-			return l
+		// If the first two letters match a supported language, return it
+		if l.String()[:2] == supportedLang.String()[:2] {
+			return supportedLang
 		}
 	}
 
