@@ -14,8 +14,23 @@ func TestParseLanguage(t *testing.T) {
 			expected: "en",
 		},
 		{
+			name:     "English (US)",
+			lang:     "en-US",
+			expected: "en",
+		},
+		{
+			name:     "English (GB)",
+			lang:     "en-GB",
+			expected: "en",
+		},
+		{
 			name:     "Spanish",
 			lang:     "es",
+			expected: "es",
+		},
+		{
+			name:     "Spanish (MX)",
+			lang:     "es-MX",
 			expected: "es",
 		},
 		{
