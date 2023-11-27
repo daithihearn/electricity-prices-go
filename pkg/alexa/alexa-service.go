@@ -15,7 +15,7 @@ type Service struct {
 	PriceService price.Service
 }
 
-func GetTitle(lang language.Tag) string {
+func (s *Service) GetTitle(lang language.Tag) string {
 	p := message.NewPrinter(lang)
 	return p.Sprintf("alexa_full_title")
 }
@@ -36,10 +36,7 @@ func (s *Service) GetFullFeed(ctx context.Context, t time.Time, lang language.Ta
 	messages = append(messages, s.getTodayRatingMessage(dailyInfo.DayRating, dailyInfo.DayAverage, lang))
 
 	// Get current price
-	cpMsg, err := s.getPriceMessage(dailyInfo.Prices, t, lang)
-	if err == nil {
-		messages = append(messages, cpMsg)
-	}
+	messages = append(messages, s.getPriceMessage(dailyInfo.Prices, t, lang))
 
 	// Get next cheap period
 	messages = append(messages, s.getNextCheapPeriodMessage(dailyInfo.CheapPeriods, t, lang))
@@ -169,15 +166,15 @@ func (s *Service) getTomorrowRatingMessage(dayRating price.DayRating, dayAverage
 	return tomorrowRating
 }
 
-func (s *Service) getPriceMessage(prices []price.Price, t time.Time, lang language.Tag) (string, error) {
+func (s *Service) getPriceMessage(prices []price.Price, t time.Time, lang language.Tag) string {
 	p := message.NewPrinter(lang)
 
 	for _, pr := range prices {
 		if date.SameHour(t, pr.DateTime) {
-			return p.Sprintf("alexa_current_price", price.FormatPrice(pr.Price)), nil
+			return p.Sprintf("alexa_current_price", price.FormatPrice(pr.Price))
 		}
 	}
-	return "", fmt.Errorf("no current price found")
+	return p.Sprintf("alexa_current_price_nodata")
 }
 
 // getNextCheapPeriodMessage

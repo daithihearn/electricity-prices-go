@@ -23,6 +23,7 @@ alexa_current_expensive_period = "Actualmente se encuentra en un período caro q
 alexa_thirty_day_average = "El precio promedio de los últimos 30 días es %s céntimos por kilovatio-hora."
 alexa_daily_average = "El precio promedio de hoy es %s céntimos por kilovatio-hora."
 alexa_current_price = "El precio actual es %s céntimos por kilovatio-hora."
+alexa_current_price_nodata = "No hay datos disponibles para hoy. Por favor, vuelva más tarde."
 alexa_welcome = "Bienvenido a la habilidad de los precios de la electricidad. Dime, dame una actualización completa."
 alexa_cancel = "Hasta luego!"
 alexa_help = "Esta skill le permite obtener información sobre el precio de la electricidad en España. Puede preguntar por el precio actual, el precio promedio de hoy, el precio promedio de los últimos 30 días, el próximo período barato, el próximo período alto, el período barato actual y el período alto actual. También puede preguntar por el precio de mañana. Que le gustaría saber?"

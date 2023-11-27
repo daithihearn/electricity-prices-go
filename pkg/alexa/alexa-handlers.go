@@ -28,7 +28,7 @@ func (s *Handler) GetFullFeed(c *gin.Context) {
 	// Parse language from request
 	lang := i18n.ParseLanguage(c.DefaultQuery("lang", "es"))
 
-	title := GetTitle(lang)
+	title := s.AlexaService.GetTitle(lang)
 
 	// Get the context from the request
 	ctx := c.Request.Context()
