@@ -74,6 +74,34 @@ func TestMain(m *testing.M) {
 	os.Exit(exitVal)
 }
 
+func TestGetTitle(t *testing.T) {
+	testCases := []struct {
+		name          string
+		lang          language.Tag
+		shouldContain string
+	}{
+		{
+			name:          "English",
+			lang:          language.English,
+			shouldContain: "Electricity Prices",
+		},
+		{
+			name:          "Spanish",
+			lang:          language.Spanish,
+			shouldContain: "Precio de la electricidad",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := alexaService.GetTitle(tc.lang)
+			if !strings.Contains(actual, tc.shouldContain) {
+				t.Errorf("shouldContain '%s' to contain: '%s'", actual, tc.shouldContain)
+			}
+		})
+	}
+}
+
 func TestGetTodayNoDataMessage(t *testing.T) {
 	testCases := []struct {
 		name          string
@@ -509,6 +537,90 @@ func TestGetNextCheapPeriodMessage(t *testing.T) {
 			}
 			if !strings.Contains(actual, tc.shouldContain3) {
 				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain3)
+			}
+		})
+	}
+}
+
+func TestGetPriceMessage(t *testing.T) {
+	testCases := []struct {
+		name           string
+		prices         []price.Price
+		t              time.Time
+		lang           language.Tag
+		shouldContain1 string
+	}{
+		{
+			name: "Current price (English)",
+			prices: []price.Price{
+				{
+					DateTime: time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+					Price:    0.1,
+				},
+				{
+					DateTime: time.Date(2023, 1, 1, 4, 0, 0, 0, madridLocation),
+					Price:    0.2,
+				},
+			},
+			t:              time.Date(2023, 1, 1, 3, 30, 0, 0, madridLocation),
+			lang:           language.English,
+			shouldContain1: "The current price is 10 cents per kilowatt-hour",
+		},
+		{
+			name: "Current price (Spanish)",
+			prices: []price.Price{
+				{
+					DateTime: time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+					Price:    0.1,
+				},
+				{
+					DateTime: time.Date(2023, 1, 1, 4, 0, 0, 0, madridLocation),
+					Price:    0.2,
+				},
+			},
+			t:              time.Date(2023, 1, 1, 4, 30, 0, 0, madridLocation),
+			lang:           language.Spanish,
+			shouldContain1: "El precio actual es 20 céntimos por kilovatio-hora",
+		},
+		{
+			name: "No data (English)",
+			prices: []price.Price{
+				{
+					DateTime: time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+					Price:    0.1,
+				},
+				{
+					DateTime: time.Date(2023, 1, 1, 4, 0, 0, 0, madridLocation),
+					Price:    0.2,
+				},
+			},
+			t:              time.Date(2023, 1, 1, 5, 30, 0, 0, madridLocation),
+			lang:           language.English,
+			shouldContain1: "There is no data available yet for today",
+		},
+		{
+			name: "No data (Spanish)",
+			prices: []price.Price{
+				{
+					DateTime: time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+					Price:    0.1,
+				},
+				{
+					DateTime: time.Date(2023, 1, 1, 4, 0, 0, 0, madridLocation),
+					Price:    0.2,
+				},
+			},
+			t:              time.Date(2023, 1, 1, 5, 30, 0, 0, madridLocation),
+			lang:           language.Spanish,
+			shouldContain1: "No hay datos disponibles para hoy",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := alexaService.getPriceMessage(tc.prices, tc.t, tc.lang)
+			if !strings.Contains(actual, tc.shouldContain1) {
+				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain1)
 			}
 		})
 	}
