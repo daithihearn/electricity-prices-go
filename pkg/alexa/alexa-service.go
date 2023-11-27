@@ -20,9 +20,9 @@ func GetTitle(lang language.Tag) string {
 	return p.Sprintf("alexa_full_title")
 }
 
-func (s *Service) GetFullFeed(ctx context.Context, date time.Time, lang language.Tag) (string, error) {
+func (s *Service) GetFullFeed(ctx context.Context, t time.Time, lang language.Tag) (string, error) {
 	// Get the daily info for the given date
-	dailyInfo, err := s.PriceService.GetDailyInfo(ctx, date)
+	dailyInfo, err := s.PriceService.GetDailyInfo(ctx, t)
 
 	if err != nil {
 		return "", err
@@ -36,19 +36,19 @@ func (s *Service) GetFullFeed(ctx context.Context, date time.Time, lang language
 	messages = append(messages, s.getTodayRatingMessage(dailyInfo.DayRating, dailyInfo.DayAverage, lang))
 
 	// Get current price
-	cpMsg, err := s.getCurrentPriceMessage(dailyInfo.Prices, lang)
+	cpMsg, err := s.getPriceMessage(dailyInfo.Prices, t, lang)
 	if err == nil {
 		messages = append(messages, cpMsg)
 	}
 
 	// Get next cheap period
-	messages = append(messages, s.getNextCheapPeriodMessage(dailyInfo.CheapPeriods, lang))
+	messages = append(messages, s.getNextCheapPeriodMessage(dailyInfo.CheapPeriods, t, lang))
 
 	// Get next expensive period
-	messages = append(messages, s.getNextExpensivePeriodMessage(dailyInfo.ExpensivePeriods, lang))
+	messages = append(messages, s.getNextExpensivePeriodMessage(dailyInfo.ExpensivePeriods, t, lang))
 
 	// Get tomorrow's data
-	tomorrowInfo, err := s.PriceService.GetDailyInfo(ctx, date.AddDate(0, 0, 1))
+	tomorrowInfo, err := s.PriceService.GetDailyInfo(ctx, t.AddDate(0, 0, 1))
 	if err == nil && len(tomorrowInfo.Prices) > 0 {
 		messages = append(messages, s.getTomorrowRatingMessage(tomorrowInfo.DayRating, tomorrowInfo.DayAverage, lang))
 	}
@@ -56,7 +56,7 @@ func (s *Service) GetFullFeed(ctx context.Context, date time.Time, lang language
 	return strings.Join(messages, " "), nil
 }
 
-func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaIntent, lang language.Tag) AlexaSkillResponse {
+func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaIntent, t time.Time, lang language.Tag) AlexaSkillResponse {
 	p := message.NewPrinter(lang)
 	var endSess bool
 	var msg string
@@ -75,18 +75,17 @@ func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaInte
 	case "AMAZON.FallbackIntent":
 		msg = p.Sprintf("alexa_welcome")
 	case "FULL":
-		msg, _ = s.GetFullFeed(ctx, time.Now(), lang)
+		msg, _ = s.GetFullFeed(ctx, t, lang)
 	case "TODAY", "TODAY_AVERAGE":
-		today := time.Now()
-		rating, err := s.PriceService.GetDayRating(ctx, today)
-		avg, err2 := s.PriceService.GetDayAverage(ctx, today)
+		rating, err := s.PriceService.GetDayRating(ctx, t)
+		avg, err2 := s.PriceService.GetDayAverage(ctx, t)
 		if err != nil || err2 != nil {
 			msg = s.getTodayNoDataMessage(lang)
 		} else {
 			msg = s.getTodayRatingMessage(rating, avg, lang)
 		}
 	case "TOMORROW":
-		tomorrow := time.Now().AddDate(0, 0, 1)
+		tomorrow := t.AddDate(0, 0, 1)
 		rating, err := s.PriceService.GetDayRating(ctx, tomorrow)
 		avg, err2 := s.PriceService.GetDayAverage(ctx, tomorrow)
 		if err != nil || err2 != nil {
@@ -95,21 +94,21 @@ func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaInte
 			msg = s.getTomorrowRatingMessage(rating, avg, lang)
 		}
 	case "NEXT_CHEAP":
-		cheapPeriods, err := s.PriceService.GetCheapPeriods(ctx, time.Now())
+		cheapPeriods, err := s.PriceService.GetCheapPeriods(ctx, t)
 		if err != nil {
 			msg = p.Sprintf("alexa_next_cheap_period_nodata")
 		} else {
-			msg = s.getNextCheapPeriodMessage(cheapPeriods, lang)
+			msg = s.getNextCheapPeriodMessage(cheapPeriods, t, lang)
 		}
 	case "NEXT_EXPENSIVE":
-		expensivePeriods, err := s.PriceService.GetExpensivePeriods(ctx, time.Now())
+		expensivePeriods, err := s.PriceService.GetExpensivePeriods(ctx, t)
 		if err != nil {
 			msg = p.Sprintf("alexa_next_expensive_period_nodata")
 		} else {
-			msg = s.getNextExpensivePeriodMessage(expensivePeriods, lang)
+			msg = s.getNextExpensivePeriodMessage(expensivePeriods, t, lang)
 		}
 	case "CURRENT_PRICE":
-		pr, err := s.PriceService.GetPrice(ctx, time.Now())
+		pr, err := s.PriceService.GetPrice(ctx, t)
 		if err != nil {
 			msg = p.Sprintf("alexa_today_nodata")
 		} else {
@@ -117,7 +116,7 @@ func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaInte
 		}
 
 	case "THIRTY_DAY_AVERAGE":
-		avg, err := s.PriceService.GetThirtyDayAverage(ctx, time.Now())
+		avg, err := s.PriceService.GetThirtyDayAverage(ctx, t)
 		if err != nil {
 			msg = p.Sprintf("alexa_today_nodata")
 		} else {
@@ -170,12 +169,11 @@ func (s *Service) getTomorrowRatingMessage(dayRating price.DayRating, dayAverage
 	return tomorrowRating
 }
 
-func (s *Service) getCurrentPriceMessage(prices []price.Price, lang language.Tag) (string, error) {
+func (s *Service) getPriceMessage(prices []price.Price, t time.Time, lang language.Tag) (string, error) {
 	p := message.NewPrinter(lang)
-	now := time.Now()
 
 	for _, pr := range prices {
-		if date.SameHour(now, pr.DateTime) {
+		if date.SameHour(t, pr.DateTime) {
 			return p.Sprintf("alexa_current_price", price.FormatPrice(pr.Price)), nil
 		}
 	}
@@ -184,18 +182,22 @@ func (s *Service) getCurrentPriceMessage(prices []price.Price, lang language.Tag
 
 // getNextCheapPeriodMessage
 // Get the next cheap period message.
-func (s *Service) getNextCheapPeriodMessage(periods [][]price.Price, lang language.Tag) string {
+func (s *Service) getNextCheapPeriodMessage(periods [][]price.Price, t time.Time, lang language.Tag) string {
 	p := message.NewPrinter(lang)
 
-	next, started := price.GetNextPeriod(periods, time.Now())
+	if len(periods) == 0 {
+		return p.Sprintf("alexa_next_cheap_period_nodata")
+	}
+
+	next, started := price.GetNextPeriod(periods, t)
 
 	if next == nil {
-		return p.Sprintf("alexa_next_cheap_period_nodata")
+		return p.Sprintf("alexa_next_cheap_period_none_left")
 	}
 
 	avg := price.FormatPrice(price.CalculateAverage(next))
 	start := date.FormatTime(next[0].DateTime)
-	end := date.FormatTime(next[len(next)-1].DateTime)
+	end := date.FormatTime(next[len(next)-1].DateTime.Add(time.Hour))
 
 	if started {
 		return p.Sprintf("alexa_current_cheap_period", start, avg, end)
@@ -207,18 +209,22 @@ func (s *Service) getNextCheapPeriodMessage(periods [][]price.Price, lang langua
 
 // getNextExpensivePeriodMessage
 // Get the next expensive period message.
-func (s *Service) getNextExpensivePeriodMessage(periods [][]price.Price, lang language.Tag) string {
+func (s *Service) getNextExpensivePeriodMessage(periods [][]price.Price, t time.Time, lang language.Tag) string {
 	p := message.NewPrinter(lang)
 
-	next, started := price.GetNextPeriod(periods, time.Now())
+	if len(periods) == 0 {
+		return p.Sprintf("alexa_next_expensive_period_nodata")
+	}
+
+	next, started := price.GetNextPeriod(periods, t)
 
 	if next == nil {
-		return p.Sprintf("alexa_next_expensive_period_nodata")
+		return p.Sprintf("alexa_next_expensive_period_none_left")
 	}
 
 	avg := price.FormatPrice(price.CalculateAverage(next))
 	start := date.FormatTime(next[0].DateTime)
-	end := date.FormatTime(next[len(next)-1].DateTime)
+	end := date.FormatTime(next[len(next)-1].DateTime.Add(time.Hour))
 
 	if started {
 		return p.Sprintf("alexa_current_expensive_period", start, avg, end)

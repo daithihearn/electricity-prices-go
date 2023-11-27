@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"time"
 )
 
 type Service struct {
-	Collection db.Collection
+	Collection db.Collection[Price]
 }
 
 func (s *Service) GetPrice(ctx context.Context, now time.Time) (Price, error) {
@@ -25,14 +24,7 @@ func (s *Service) GetPrice(ctx context.Context, now time.Time) (Price, error) {
 		"dateTime": hour,
 	}
 
-	var price Price
-	err := s.Collection.FindOne(ctx, filter).Decode(&price)
-
-	if err != nil {
-		return Price{}, err
-	}
-
-	return price, err
+	return s.Collection.FindOne(ctx, filter)
 }
 
 func (s *Service) GetPrices(ctx context.Context, start time.Time, end time.Time) ([]Price, error) {
@@ -45,44 +37,10 @@ func (s *Service) GetPrices(ctx context.Context, start time.Time, end time.Time)
 		},
 	}
 
-	findOptions := options.Find()
-	var prices = make([]Price, 0)
-
-	cur, err := s.Collection.Find(ctx, filter, findOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func(cur *mongo.Cursor, ctx context.Context) {
-		err := cur.Close(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(cur, ctx)
-
-	for cur.Next(ctx) {
-		var price Price
-		err := cur.Decode(&price)
-		if err != nil {
-			log.Println("Error decoding price:", err)
-			continue
-		}
-		prices = append(prices, price)
-	}
-
-	if err := cur.Err(); err != nil {
-		return nil, err
-	}
-
-	return prices, nil
+	return s.Collection.Find(ctx, filter)
 }
 
 func (s *Service) SavePrices(ctx context.Context, prices []Price) error {
-
-	var documents []interface{}
-	for _, price := range prices {
-		documents = append(documents, price)
-	}
 
 	client, err := db.GetMongoClient(ctx)
 	if err != nil {
@@ -105,7 +63,7 @@ func (s *Service) SavePrices(ctx context.Context, prices []Price) error {
 			return err
 		}
 
-		_, err = s.Collection.InsertMany(ctx, documents)
+		err = s.Collection.InsertMany(ctx, prices)
 		if err != nil {
 			// If there's an error, abort the transaction and return the error.
 			session.AbortTransaction(sc)

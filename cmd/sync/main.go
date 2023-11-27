@@ -48,7 +48,8 @@ func main() {
 		cancel()
 		log.Fatal("Failed to get collection: ", err)
 	}
-	priceService := price.Service{Collection: col}
+	priceCollection := price.PriceCollection{Col: col}
+	priceService := price.Service{Collection: priceCollection}
 	syncService := sync.Service{PriceService: priceService}
 
 	// Sync with the API.

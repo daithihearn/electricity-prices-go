@@ -28,14 +28,12 @@ func (s *Handler) GetFullFeed(c *gin.Context) {
 	// Parse language from request
 	lang := i18n.ParseLanguage(c.DefaultQuery("lang", "es"))
 
-	now := time.Now()
-
 	title := GetTitle(lang)
 
 	// Get the context from the request
 	ctx := c.Request.Context()
 
-	feed, err := s.AlexaService.GetFullFeed(ctx, now, lang)
+	feed, err := s.AlexaService.GetFullFeed(ctx, time.Now(), lang)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, api.ErrorResponse{Message: err.Error()})
 		return
@@ -82,6 +80,6 @@ func (s *Handler) ProcessSkillRequest(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	// Parse the request
-	response := s.AlexaService.ProcessAlexaSkillRequest(ctx, request.Request.Intent, lang)
+	response := s.AlexaService.ProcessAlexaSkillRequest(ctx, request.Request.Intent, time.Now(), lang)
 	c.IndentedJSON(http.StatusOK, response)
 }
