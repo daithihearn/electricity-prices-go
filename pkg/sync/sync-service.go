@@ -25,16 +25,8 @@ func (s *Service) SyncWithAPI(ctx context.Context) {
 	log.Println("Last day synced: ", p.DateTime.Format("January 2 2006"))
 	currentDate := date.StartOfDay(p.DateTime).AddDate(0, 0, 1)
 
-	// If last day is after tomorrow then exit
-	today := time.Now()
-	tomorrow := date.StartOfDay(today.AddDate(0, 0, 1))
-
 	// Keep processing until we reach tomorrow
 	for {
-		if currentDate.After(tomorrow) {
-			log.Println("Fully synced. Exiting...")
-			break
-		}
 
 		// Get the prices from the API
 		prices, synced, err := ree.GetPricesFromRee(currentDate)
