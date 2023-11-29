@@ -21,8 +21,9 @@ func (s *Service) SyncWithAPI(ctx context.Context) {
 	if err != nil {
 		p = price.Price{DateTime: date.StartOfDay(time.Date(2021, 5, 31, 0, 0, 0, 0, time.Local))}
 	}
+
+	log.Println("Last day synced: ", p.DateTime.Format("January 2 2006"))
 	currentDate := date.StartOfDay(p.DateTime).AddDate(0, 0, 1)
-	log.Println("Last day synced: ", currentDate)
 
 	// If last day is after tomorrow then exit
 	today := time.Now()
