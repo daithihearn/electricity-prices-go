@@ -1,9 +1,8 @@
 package price
 
 import (
-	"encoding/json"
+	"electricity-prices/pkg/testutils"
 	"math"
-	"os"
 	"testing"
 	"time"
 )
@@ -12,19 +11,6 @@ const epsilon = 1e-4 // Tolerance level
 
 func floatEquals(a, b float64) bool {
 	return math.Abs(a-b) <= epsilon
-}
-
-func readJSONFromFile(filePath string, result interface{}) error {
-	bytes, err := os.ReadFile(filePath)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(bytes, result)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func TestCalculateAverage(t *testing.T) {
@@ -246,7 +232,7 @@ func TestCalculateMaxVariance(t *testing.T) {
 
 func TestCalculateCheapVariance(t *testing.T) {
 	var normalPeriod []Price
-	err := readJSONFromFile("testdata/normal-day.json", &normalPeriod)
+	err := testutils.ReadJSONFromFile("testdata/normal-day.json", &normalPeriod)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
@@ -277,7 +263,7 @@ func TestCalculateCheapVariance(t *testing.T) {
 
 func TestCalculateExpensiveVariance(t *testing.T) {
 	var normalPeriod []Price
-	err := readJSONFromFile("testdata/normal-day.json", &normalPeriod)
+	err := testutils.ReadJSONFromFile("testdata/normal-day.json", &normalPeriod)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
@@ -308,13 +294,13 @@ func TestCalculateExpensiveVariance(t *testing.T) {
 
 func TestCalculateCheapPeriods(t *testing.T) {
 	var cheapPeriod []Price
-	err := readJSONFromFile("testdata/cheap-day.json", &cheapPeriod)
+	err := testutils.ReadJSONFromFile("testdata/cheap-day.json", &cheapPeriod)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 
 	var cheapPeriodResult [][]Price
-	err = readJSONFromFile("testdata/cheap-day-cp.json", &cheapPeriodResult)
+	err = testutils.ReadJSONFromFile("testdata/cheap-day-cp.json", &cheapPeriodResult)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
@@ -355,7 +341,7 @@ func TestCalculateCheapPeriods(t *testing.T) {
 
 func TestCalculateExpensivePeriods(t *testing.T) {
 	var cheapDay []Price
-	err := readJSONFromFile("testdata/cheap-day.json", &cheapDay)
+	err := testutils.ReadJSONFromFile("testdata/cheap-day.json", &cheapDay)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
@@ -469,13 +455,13 @@ func TestFormatPrice(t *testing.T) {
 
 func TestGroupPrices(t *testing.T) {
 	var ndNotGrouped []Price
-	err := readJSONFromFile("testdata/normal-day-cp-not-grouped.json", &ndNotGrouped)
+	err := testutils.ReadJSONFromFile("testdata/normal-day-cp-not-grouped.json", &ndNotGrouped)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 
 	var ndGrouped [][]Price
-	err = readJSONFromFile("testdata/normal-day-cp.json", &ndGrouped)
+	err = testutils.ReadJSONFromFile("testdata/normal-day-cp.json", &ndGrouped)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
@@ -512,14 +498,14 @@ func TestGroupPrices(t *testing.T) {
 
 func TestCalculateDailyAverages(t *testing.T) {
 	var cheapDay []Price
-	err := readJSONFromFile("testdata/cheap-day.json", &cheapDay)
+	err := testutils.ReadJSONFromFile("testdata/cheap-day.json", &cheapDay)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
 	cheapAvg := CalculateAverage(cheapDay)
 
 	var normalDay []Price
-	err = readJSONFromFile("testdata/normal-day.json", &normalDay)
+	err = testutils.ReadJSONFromFile("testdata/normal-day.json", &normalDay)
 	if err != nil {
 		t.Errorf("Error reading file: %s", err)
 	}
