@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"electricity-prices/pkg/db"
+	"electricity-prices/pkg/esios"
 	"electricity-prices/pkg/price"
+	"electricity-prices/pkg/ree"
 	"electricity-prices/pkg/sync"
 	"github.com/joho/godotenv"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -50,7 +53,13 @@ func main() {
 	}
 	priceCollection := price.PriceCollection{Col: col}
 	priceService := price.Service{Collection: priceCollection}
-	syncService := sync.Service{PriceService: priceService}
+	reeClient := ree.ReeClient{
+		Http: &http.Client{Timeout: time.Second * 30},
+	}
+	esiosClient := esios.EsiosClient{
+		Http: &http.Client{Timeout: time.Second * 30},
+	}
+	syncService := sync.Service{PriceService: priceService, PrimaryClient: &reeClient, BackupClient: &esiosClient}
 
 	// Sync with the API.
 	syncService.SyncWithAPI(ctx)

@@ -1,0 +1,154 @@
+{
+  "data": {
+    "type": "Precios mercado peninsular en tiempo real",
+    "id": "mer13",
+    "attributes": {
+      "title": "Precios mercado peninsular en tiempo real",
+      "last-update": "2023-11-29T14:54:09.000+01:00",
+      "description": null
+    },
+    "meta": {
+      "cache-control": {
+        "cache": "MISS"
+      }
+    }
+  },
+  "included": [
+    {
+      "type": "Spot market price (\u20ac\/MWh)",
+      "id": "600",
+      "groupId": null,
+      "attributes": {
+        "title": "Spot market price (\u20ac\/MWh)",
+        "description": null,
+        "color": "#df4a32",
+        "type": null,
+        "magnitude": "price",
+        "composite": false,
+        "last-update": "2023-11-29T14:54:09.000+01:00",
+        "values": [
+          {
+            "value": 72.39,
+            "percentage": 1,
+            "datetime": "2023-11-30T00:00:00.000+01:00"
+          },
+          {
+            "value": 64.5,
+            "percentage": 1,
+            "datetime": "2023-11-30T01:00:00.000+01:00"
+          },
+          {
+            "value": 59.79,
+            "percentage": 1,
+            "datetime": "2023-11-30T02:00:00.000+01:00"
+          },
+          {
+            "value": 59.3,
+            "percentage": 1,
+            "datetime": "2023-11-30T03:00:00.000+01:00"
+          },
+          {
+            "value": 59.01,
+            "percentage": 1,
+            "datetime": "2023-11-30T04:00:00.000+01:00"
+          },
+          {
+            "value": 59.99,
+            "percentage": 1,
+            "datetime": "2023-11-30T05:00:00.000+01:00"
+          },
+          {
+            "value": 71.95,
+            "percentage": 1,
+            "datetime": "2023-11-30T06:00:00.000+01:00"
+          },
+          {
+            "value": 100,
+            "percentage": 1,
+            "datetime": "2023-11-30T07:00:00.000+01:00"
+          },
+          {
+            "value": 99.17,
+            "percentage": 1,
+            "datetime": "2023-11-30T08:00:00.000+01:00"
+          },
+          {
+            "value": 100,
+            "percentage": 1,
+            "datetime": "2023-11-30T09:00:00.000+01:00"
+          },
+          {
+            "value": 101.48,
+            "percentage": 1,
+            "datetime": "2023-11-30T10:00:00.000+01:00"
+          },
+          {
+            "value": 99.17,
+            "percentage": 1,
+            "datetime": "2023-11-30T11:00:00.000+01:00"
+          },
+          {
+            "value": 101.48,
+            "percentage": 1,
+            "datetime": "2023-11-30T12:00:00.000+01:00"
+          },
+          {
+            "value": 103,
+            "percentage": 1,
+            "datetime": "2023-11-30T13:00:00.000+01:00"
+          },
+          {
+            "value": 103,
+            "percentage": 1,
+            "datetime": "2023-11-30T14:00:00.000+01:00"
+          },
+          {
+            "value": 101.48,
+            "percentage": 1,
+            "datetime": "2023-11-30T15:00:00.000+01:00"
+          },
+          {
+            "value": 113.51,
+            "percentage": 1,
+            "datetime": "2023-11-30T16:00:00.000+01:00"
+          },
+          {
+            "value": 115,
+            "percentage": 1,
+            "datetime": "2023-11-30T17:00:00.000+01:00"
+          },
+          {
+            "value": 125.01,
+            "percentage": 1,
+            "datetime": "2023-11-30T18:00:00.000+01:00"
+          },
+          {
+            "value": 145,
+            "percentage": 1,
+            "datetime": "2023-11-30T19:00:00.000+01:00"
+          },
+          {
+            "value": 150.2,
+            "percentage": 1,
+            "datetime": "2023-11-30T20:00:00.000+01:00"
+          },
+          {
+            "value": 132.66,
+            "percentage": 1,
+            "datetime": "2023-11-30T21:00:00.000+01:00"
+          },
+          {
+            "value": 104.34,
+            "percentage": 1,
+            "datetime": "2023-11-30T22:00:00.000+01:00"
+          },
+          {
+            "value": 113.51,
+            "percentage": 1,
+            "datetime": "2023-11-30T23:00:00.000+01:00"
+          }
+        ]
+      }
+    }
+  ]
+}

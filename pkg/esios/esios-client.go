@@ -3,11 +3,11 @@ package esios
 import (
 	"electricity-prices/pkg/date"
 	"electricity-prices/pkg/price"
+	"electricity-prices/pkg/web"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -15,15 +15,19 @@ import (
 
 const urlTemplate = "https://api.esios.ree.es/archives/70/download_json?date=%s"
 
+type EsiosClient struct {
+	Http web.HTTPClient
+}
+
 // GetPrices returns the prices for the given date from the ERIOS API
-func GetPrices(t time.Time) ([]price.Price, bool, error) {
+func (e *EsiosClient) GetPrices(t time.Time) ([]price.Price, bool, error) {
 	// Parse date to day string
 	day := t.Format("2006-01-02")
 
 	// Call to endpoint
-	resp, err := http.Get(fmt.Sprintf(urlTemplate, day))
+	resp, err := e.Http.Get(fmt.Sprintf(urlTemplate, day))
 	if err != nil {
-		log.Fatalf("Error occurred while sending request to the server: %s", err)
+		return nil, false, err
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -35,7 +39,7 @@ func GetPrices(t time.Time) ([]price.Price, bool, error) {
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("Error occurred while reading response body: %s", err)
+		return nil, false, err
 	}
 
 	// Check if the status code indicates success
@@ -46,7 +50,10 @@ func GetPrices(t time.Time) ([]price.Price, bool, error) {
 		// Parse the JSON response body into the response struct
 		err := json.Unmarshal(body, &res)
 		if err != nil {
-			log.Fatalf("Error occurred while unmarshaling the response body: %s", err)
+			return nil, false, err
+		}
+		if res.Message == "" && len(res.PVPC) == 0 {
+			return nil, false, fmt.Errorf("failed to parse response for day %s", day)
 		}
 
 		if res.Message != "" {

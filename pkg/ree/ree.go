@@ -18,12 +18,15 @@ type ReeIncluded struct {
 }
 
 type ReeError struct {
-	Code   string `json:"code"`
+	Code   int    `json:"code"`
 	Status string `json:"status"`
 	Title  string `json:"title"`
 	Detail string `json:"detail"`
 }
 type ReeResponse struct {
 	Included []ReeIncluded `json:"included"`
-	Errors   []ReeError    `json:"errors"`
+}
+
+type ReeErrorResponse struct {
+	Errors []ReeError `json:"errors"`
 }
