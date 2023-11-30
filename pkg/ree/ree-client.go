@@ -12,8 +12,8 @@ import (
 
 const urlTemplate = "https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real?time_trunc=hour&start_date=%sT00:00&end_date=%sT23:59"
 
-// GetPricesFromRee returns the prices for the given date from the REE API
-func GetPricesFromRee(date time.Time) ([]price.Price, bool, error) {
+// GetPrices returns the prices for the given date from the REE API
+func GetPrices(date time.Time) ([]price.Price, bool, error) {
 	// Parse date to day string
 	day := date.Format("2006-01-02")
 
@@ -22,7 +22,12 @@ func GetPricesFromRee(date time.Time) ([]price.Price, bool, error) {
 	if err != nil {
 		log.Fatalf("Error occurred while sending request to the server: %s", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Fatalf("Error occurred while closing response body: %s", err)
+		}
+	}(resp.Body)
 
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
@@ -32,10 +37,10 @@ func GetPricesFromRee(date time.Time) ([]price.Price, bool, error) {
 
 	// Check if the status code indicates success
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		// Initialize an instance of PVPC
+		// Initialize the response object
 		var res ReeResponse
 
-		// Parse the JSON response body into the PVPC struct
+		// Parse the JSON response body into the response struct
 		err := json.Unmarshal(body, &res)
 		if err != nil {
 			log.Fatalf("Error occurred while unmarshaling the response body: %s", err)
@@ -68,6 +73,12 @@ func GetPricesFromRee(date time.Time) ([]price.Price, bool, error) {
 		}
 
 		return prices, false, nil
+
+	} else if resp.StatusCode == 404 || resp.StatusCode == 502 {
+		// If the date is in the future, return synced as true
+		if date.After(time.Now()) {
+			return nil, true, nil
+		}
 	}
 
 	return nil, false, fmt.Errorf("server responded with a non-successful status code: %d", resp.StatusCode)

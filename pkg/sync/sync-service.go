@@ -3,6 +3,7 @@ package sync
 import (
 	"context"
 	"electricity-prices/pkg/date"
+	"electricity-prices/pkg/esios"
 	"electricity-prices/pkg/price"
 	"electricity-prices/pkg/ree"
 	"log"
@@ -29,7 +30,20 @@ func (s *Service) SyncWithAPI(ctx context.Context) {
 	for {
 
 		// Get the prices from the API
-		prices, synced, err := ree.GetPricesFromRee(currentDate)
+		prices, synced, err := ree.GetPrices(currentDate)
+
+		if err != nil {
+			panic(err)
+		}
+
+		// Check the ESIOS API
+		if synced {
+			prices, synced, err = esios.GetPrices(currentDate)
+		}
+
+		if err != nil {
+			panic(err)
+		}
 
 		if synced {
 			log.Println("Fully synced. Exiting...")
