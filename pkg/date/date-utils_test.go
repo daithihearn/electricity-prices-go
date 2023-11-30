@@ -238,3 +238,62 @@ func TestStartOfDay(t *testing.T) {
 		})
 	}
 }
+
+func TestParseEsiosTime(t *testing.T) {
+	location, _ := time.LoadLocation("Europe/Madrid")
+	testCases := []struct {
+		name          string
+		date          string
+		hourRange     string
+		expected      time.Time
+		errorExpected bool
+	}{
+		{
+			name:          "Parse esios time - start of day",
+			date:          "02/01/2023",
+			hourRange:     "00-01",
+			expected:      time.Date(2023, 1, 2, 0, 0, 0, 0, location),
+			errorExpected: false,
+		},
+		{
+			name:          "Parse esios time - middle of day",
+			date:          "02/01/2023",
+			hourRange:     "12-13",
+			expected:      time.Date(2023, 1, 2, 12, 0, 0, 0, location),
+			errorExpected: false,
+		},
+		{
+			name:          "Parse esios time - end of day",
+			date:          "02/01/2023",
+			hourRange:     "23-24",
+			expected:      time.Date(2023, 1, 2, 23, 0, 0, 0, location),
+			errorExpected: false,
+		},
+		{
+			name:          "Parse esios time - invalid date",
+			date:          "invalid date",
+			hourRange:     "23-24",
+			expected:      time.Time{},
+			errorExpected: true,
+		},
+		{
+			name:          "Parse esios time - invalid hour range",
+			date:          "02/01/2023",
+			hourRange:     "invalid hour range",
+			expected:      time.Time{},
+			errorExpected: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := ParseEsiosTime(tc.date, tc.hourRange)
+			if !result.Equal(tc.expected) {
+				t.Errorf("Expected %v but was %v", tc.expected, result)
+			}
+			if tc.errorExpected && err == nil {
+				t.Errorf("Expected error but was nil")
+			}
+		})
+	}
+}
