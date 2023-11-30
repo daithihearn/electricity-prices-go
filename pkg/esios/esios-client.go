@@ -49,9 +49,14 @@ func GetPrices(t time.Time) ([]price.Price, bool, error) {
 			log.Fatalf("Error occurred while unmarshaling the response body: %s", err)
 		}
 
-		if len(res.PVPC) == 0 {
+		if res.Message != "" {
 			log.Printf("No prices for %s", day)
-			return nil, true, nil
+
+			// If the date is in the future, return synced as true
+			if t.After(time.Now()) {
+				return nil, true, nil
+			}
+			return nil, false, fmt.Errorf("no prices for %s", day)
 		}
 
 		prices := make([]price.Price, len(res.PVPC))

@@ -8,5 +8,6 @@ type EsioPVPC struct {
 }
 
 type EsiosResponse struct {
-	PVPC []EsioPVPC `json:"PVPC"`
+	PVPC    []EsioPVPC `json:"PVPC"`
+	Message string     `json:"message"`
 }

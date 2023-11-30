@@ -73,6 +73,12 @@ func GetPrices(date time.Time) ([]price.Price, bool, error) {
 		}
 
 		return prices, false, nil
+
+	} else if resp.StatusCode == 404 || resp.StatusCode == 502 {
+		// If the date is in the future, return synced as true
+		if date.After(time.Now()) {
+			return nil, true, nil
+		}
 	}
 
 	return nil, false, fmt.Errorf("server responded with a non-successful status code: %d", resp.StatusCode)
