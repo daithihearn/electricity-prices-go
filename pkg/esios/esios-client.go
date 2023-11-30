@@ -1,6 +1,7 @@
 package esios
 
 import (
+	"electricity-prices/pkg/date"
 	"electricity-prices/pkg/price"
 	"encoding/json"
 	"fmt"
@@ -15,9 +16,9 @@ import (
 const urlTemplate = "https://api.esios.ree.es/archives/70/download_json?date=%s"
 
 // GetPrices returns the prices for the given date from the ERIOS API
-func GetPrices(date time.Time) ([]price.Price, bool, error) {
+func GetPrices(t time.Time) ([]price.Price, bool, error) {
 	// Parse date to day string
-	day := date.Format("2006-01-02")
+	day := t.Format("2006-01-02")
 
 	// Call to endpoint
 	resp, err := http.Get(fmt.Sprintf(urlTemplate, day))
@@ -60,7 +61,7 @@ func GetPrices(date time.Time) ([]price.Price, bool, error) {
 			if err != nil {
 				return nil, false, fmt.Errorf("error converting price: %v", err)
 			}
-			convetedDate, err := convertToTime(p.Day, p.Hour)
+			convetedDate, err := date.ParseEsiosTime(p.Day, p.Hour)
 			if err != nil {
 				return nil, false, fmt.Errorf("error converting date: %v", err)
 			}
@@ -82,39 +83,4 @@ func convertStringToFloat(s string) (float64, error) {
 
 	// Convert string to float
 	return strconv.ParseFloat(s, 64)
-}
-
-func convertToTime(dateStr string, hourRange string) (time.Time, error) {
-	// Convert hour range to integer
-	hour, err := convertHourRangeToIn(hourRange)
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	// Layout of the input date string (this must match the format of dateStr)
-	layout := "02/01/2006"
-
-	// Parse the date string
-	date, err := time.Parse(layout, dateStr)
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	// Create a new time with the specified hour, minute, and second
-	newTime := time.Date(date.Year(), date.Month(), date.Day(), hour, 0, 0, 0, date.Location())
-
-	return newTime, nil
-}
-
-func convertHourRangeToIn(hourRange string) (int, error) {
-	// Check if the string is at least 2 characters long
-	if len(hourRange) < 2 {
-		return 0, fmt.Errorf("string is too short")
-	}
-
-	// Extract the first two characters
-	firstTwo := hourRange[:2]
-
-	// Convert to integer
-	return strconv.Atoi(firstTwo)
 }
