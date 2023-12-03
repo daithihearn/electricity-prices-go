@@ -42,7 +42,7 @@ func TestGetPrices_Integration(t *testing.T) {
 		},
 	}
 
-	client := ReeClient{Http: &http.Client{Timeout: time.Second * 30}}
+	client := Client{Http: &http.Client{Timeout: time.Second * 30}}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -151,7 +151,7 @@ func TestGetPrices(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			client := ReeClient{Http: &web.MockHTTPClient{
+			client := Client{Http: &web.MockHTTPClient{
 				MockResp: test.mockResponse,
 				MockErr:  test.mockError,
 			}}

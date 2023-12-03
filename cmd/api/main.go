@@ -65,8 +65,8 @@ func main() {
 	}
 	priceCollection := price.PriceCollection{Col: col}
 	priceService := price.Service{Collection: priceCollection}
-	priceHandler := price.Handler{PriceService: priceService}
-	alexaService := alexa.Service{PriceService: priceService}
+	priceHandler := price.Handler{PriceService: &priceService}
+	alexaService := alexa.Service{PriceService: &priceService}
 	alexaHandler := alexa.Handler{AlexaService: alexaService}
 
 	// Set up the API routes.

@@ -34,7 +34,7 @@ func (m *MockCollection) InsertMany(ctx context.Context, documents []Price) erro
 }
 
 func TestGetPrice(t *testing.T) {
-	ctx := context.TODO()
+	ctx := context.Background()
 	now := time.Now()
 
 	priceExample := Price{
@@ -83,7 +83,7 @@ func TestGetPrice(t *testing.T) {
 }
 
 func TestGetPrices(t *testing.T) {
-	ctx := context.TODO()
+	ctx := context.Background()
 	now := time.Now()
 
 	priceExample := Price{
@@ -132,7 +132,7 @@ func TestGetPrices(t *testing.T) {
 }
 
 func TestGetDailyPrices(t *testing.T) {
-	ctx := context.TODO()
+	ctx := context.Background()
 	now := time.Now()
 
 	priceExample := Price{
@@ -181,7 +181,7 @@ func TestGetDailyPrices(t *testing.T) {
 }
 
 func TestGetDailyAverages(t *testing.T) {
-	ctx := context.TODO()
+	ctx := context.Background()
 	now := time.Now()
 
 	priceExample := Price{

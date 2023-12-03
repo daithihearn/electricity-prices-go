@@ -15,12 +15,12 @@ import (
 
 const urlTemplate = "https://api.esios.ree.es/archives/70/download_json?date=%s"
 
-type EsiosClient struct {
+type Client struct {
 	Http web.HTTPClient
 }
 
-// GetPrices returns the prices for the given date from the ERIOS API
-func (e *EsiosClient) GetPrices(t time.Time) ([]price.Price, bool, error) {
+// GetPrices returns the prices for the given date from the ESIOS API
+func (e *Client) GetPrices(t time.Time) ([]price.Price, bool, error) {
 	// Parse date to day string
 	day := t.Format("2006-01-02")
 
