@@ -3,6 +3,7 @@ package sync
 import (
 	"context"
 	"electricity-prices/pkg/price"
+	"electricity-prices/pkg/price/testdata"
 	"fmt"
 	"testing"
 	"time"
@@ -148,7 +149,7 @@ func TestSync(t *testing.T) {
 	}
 	for _, test := range tests {
 		// Create a mock PriceService
-		mockPriceService := &price.MockPriceService{
+		mockPriceService := &testdata.MockPriceService{
 			MockGetLatestPriceResult:   test.getLatestPriceResp,
 			MockGetLatestPriceNoResult: test.getLatestPriceNoResult,
 			MockGetLatestPriceError:    test.getLatestPriceErr,
@@ -156,12 +157,12 @@ func TestSync(t *testing.T) {
 		}
 
 		// Mock primary and secondary clients
-		mockPrimaryClient := &price.MockPriceClient{
+		mockPrimaryClient := &testdata.MockPriceClient{
 			MockGetPricesResult: test.primaryGetPricesResp,
 			MockGetPricesSynced: test.primaryGetPricesSynced,
 			MockGetPricesError:  test.primaryGetPricesErr,
 		}
-		mockSecondaryClient := &price.MockPriceClient{
+		mockSecondaryClient := &testdata.MockPriceClient{
 			MockGetPricesResult: test.secondaryGetPricesResp,
 			MockGetPricesSynced: test.secondaryGetPricesSynced,
 			MockGetPricesError:  test.secondaryGetPricesErr,

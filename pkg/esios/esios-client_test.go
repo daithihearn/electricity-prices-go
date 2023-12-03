@@ -3,7 +3,7 @@ package esios
 import (
 	"electricity-prices/pkg/date"
 	"electricity-prices/pkg/testutils"
-	"electricity-prices/pkg/web"
+	"electricity-prices/pkg/web/testdata"
 	"errors"
 	"net/http"
 	"testing"
@@ -85,7 +85,7 @@ func TestGetPrices(t *testing.T) {
 		{
 			name:     "Valid response",
 			testDate: time.Date(2023, 11, 29, 0, 0, 0, 0, date.Location),
-			mockResponse: &http.Response{StatusCode: 200, Body: web.NewMockReadCloser(
+			mockResponse: &http.Response{StatusCode: 200, Body: testdata.NewMockReadCloser(
 				testutils.ReadJsonStringFromFile("testdata/valid-2023-11-29.json"))},
 			mockError:          nil,
 			expectedResultSize: 24,
@@ -95,7 +95,7 @@ func TestGetPrices(t *testing.T) {
 		{
 			name:     "No values for specified archive - in future",
 			testDate: time.Now().AddDate(0, 0, 1),
-			mockResponse: &http.Response{StatusCode: 200, Body: web.NewMockReadCloser(
+			mockResponse: &http.Response{StatusCode: 200, Body: testdata.NewMockReadCloser(
 				testutils.ReadJsonStringFromFile("testdata/no-values-for-archive.json"))},
 			mockError:          nil,
 			expectedResultSize: 0,
@@ -105,7 +105,7 @@ func TestGetPrices(t *testing.T) {
 		{
 			name:     "No values for specified archive - in past",
 			testDate: time.Date(2000, 10, 11, 0, 0, 0, 0, date.Location),
-			mockResponse: &http.Response{StatusCode: 200, Body: web.NewMockReadCloser(
+			mockResponse: &http.Response{StatusCode: 200, Body: testdata.NewMockReadCloser(
 				testutils.ReadJsonStringFromFile("testdata/no-values-for-archive.json"))},
 			mockError:          nil,
 			expectedResultSize: 0,
@@ -115,7 +115,7 @@ func TestGetPrices(t *testing.T) {
 		{
 			name:               "Invalid data returned",
 			testDate:           time.Date(2022, 10, 11, 0, 0, 0, 0, date.Location),
-			mockResponse:       &http.Response{StatusCode: 200, Body: web.NewMockReadCloser(`{"data": "invalid"}`)},
+			mockResponse:       &http.Response{StatusCode: 200, Body: testdata.NewMockReadCloser(`{"data": "invalid"}`)},
 			mockError:          nil,
 			expectedResultSize: 0,
 			expectSynced:       false,
@@ -124,7 +124,7 @@ func TestGetPrices(t *testing.T) {
 		{
 			name:           "500 error",
 			testDate:       time.Date(2022, 10, 11, 0, 0, 0, 0, date.Location),
-			mockResponse:   &http.Response{StatusCode: 500, Body: web.NewMockReadCloser("")},
+			mockResponse:   &http.Response{StatusCode: 500, Body: testdata.NewMockReadCloser("")},
 			mockError:      nil,
 			expectSynced:   false,
 			expectingError: true,
@@ -142,7 +142,7 @@ func TestGetPrices(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			client := Client{Http: &web.MockHTTPClient{
+			client := Client{Http: &testdata.MockHTTPClient{
 				MockResp: test.mockResponse,
 				MockErr:  test.mockError,
 			}}
