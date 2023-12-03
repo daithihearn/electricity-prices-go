@@ -12,12 +12,12 @@ import (
 
 const urlTemplate = "https://apidatos.ree.es/en/datos/mercados/precios-mercados-tiempo-real?time_trunc=hour&start_date=%sT00:00&end_date=%sT23:59"
 
-type ReeClient struct {
+type Client struct {
 	Http web.HTTPClient
 }
 
 // GetPrices returns the prices for the given date from the REE API
-func (c *ReeClient) GetPrices(t time.Time) ([]price.Price, bool, error) {
+func (c *Client) GetPrices(t time.Time) ([]price.Price, bool, error) {
 	// Parse date to day string
 	day := t.Format("2006-01-02")
 

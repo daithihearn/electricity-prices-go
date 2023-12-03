@@ -53,16 +53,26 @@ func main() {
 	}
 	priceCollection := price.PriceCollection{Col: col}
 	priceService := price.Service{Collection: priceCollection}
-	reeClient := ree.ReeClient{
+	reeClient := ree.Client{
 		Http: &http.Client{Timeout: time.Second * 30},
 	}
-	esiosClient := esios.EsiosClient{
+	esiosClient := esios.Client{
 		Http: &http.Client{Timeout: time.Second * 30},
 	}
-	syncService := sync.Service{PriceService: priceService, PrimaryClient: &reeClient, BackupClient: &esiosClient}
+	syncService := sync.Syncer{PriceService: &priceService, PrimaryClient: &reeClient, SecondaryClient: &esiosClient}
 
 	// Sync with the API.
-	syncService.SyncWithAPI(ctx)
+	synced, err := syncService.Sync(ctx, time.Now().AddDate(0, 0, 1))
+	if err != nil {
+		cancel()
+		log.Fatal("Failed to sync with API: ", err)
+	}
+	if synced {
+		log.Println("Synced successfully")
+	} else {
+		cancel()
+		log.Fatal("Failed to sync fully...")
+	}
 	cancel()
 
 	// Wait for the cancellation of the context (due to signal handling)

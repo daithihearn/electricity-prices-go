@@ -1,4 +1,4 @@
-package web
+package testdata
 
 import (
 	"bytes"

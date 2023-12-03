@@ -11,13 +11,28 @@ import (
 	"time"
 )
 
+type PriceService interface {
+	GetPrice(ctx context.Context, t time.Time) (Price, error)
+	GetPrices(ctx context.Context, start time.Time, end time.Time) ([]Price, error)
+	SavePrices(ctx context.Context, prices []Price) error
+	GetDailyPrices(ctx context.Context, t time.Time) ([]Price, error)
+	GetDailyAverages(ctx context.Context, t time.Time, numberOfDays int) ([]DailyAverage, error)
+	GetDailyInfo(ctx context.Context, t time.Time) (DailyPriceInfo, error)
+	GetDayRating(ctx context.Context, t time.Time) (DayRating, error)
+	GetDayAverage(ctx context.Context, t time.Time) (float64, error)
+	GetCheapPeriods(ctx context.Context, t time.Time) ([][]Price, error)
+	GetExpensivePeriods(ctx context.Context, t time.Time) ([][]Price, error)
+	GetThirtyDayAverage(ctx context.Context, t time.Time) (float64, error)
+	GetLatestPrice(ctx context.Context) (Price, bool, error)
+}
+
 type Service struct {
 	Collection db.Collection[Price]
 }
 
-func (s *Service) GetPrice(ctx context.Context, now time.Time) (Price, error) {
+func (s *Service) GetPrice(ctx context.Context, t time.Time) (Price, error) {
 	// Set to the start of the current hour
-	hour := now.Truncate(time.Hour)
+	hour := t.Truncate(time.Hour)
 
 	// Get the prices for the given hour
 	filter := bson.M{
@@ -94,10 +109,10 @@ func (s *Service) GetDailyPrices(ctx context.Context, t time.Time) ([]Price, err
 	return prices, nil
 }
 
-func (s *Service) GetDailyAverages(ctx context.Context, date time.Time, numberOfDays int) ([]DailyAverage, error) {
+func (s *Service) GetDailyAverages(ctx context.Context, t time.Time, numberOfDays int) ([]DailyAverage, error) {
 
-	xDaysAgo := date.AddDate(0, 0, -numberOfDays)
-	nextDay := time.Date(date.Year(), date.Month(), date.Day()+1, 0, 0, 0, 0, date.Location())
+	xDaysAgo := t.AddDate(0, 0, -numberOfDays)
+	nextDay := time.Date(t.Year(), t.Month(), t.Day()+1, 0, 0, 0, 0, t.Location())
 
 	// Subtract one second to get the last second of the current day
 	today := nextDay.Add(-time.Second)
@@ -114,15 +129,15 @@ func (s *Service) GetDailyAverages(ctx context.Context, date time.Time, numberOf
 
 }
 
-func (s *Service) GetDailyInfo(ctx context.Context, date time.Time) (DailyPriceInfo, error) {
+func (s *Service) GetDailyInfo(ctx context.Context, t time.Time) (DailyPriceInfo, error) {
 	// Get the prices for the given day
-	prices, err := s.GetDailyPrices(ctx, date)
+	prices, err := s.GetDailyPrices(ctx, t)
 	if err != nil {
 		return DailyPriceInfo{}, err
 	}
 
 	// Get thirty-day average
-	avgPrice, err := s.GetThirtyDayAverage(ctx, date)
+	avgPrice, err := s.GetThirtyDayAverage(ctx, t)
 	if err != nil {
 		return DailyPriceInfo{}, err
 	}
@@ -147,18 +162,18 @@ func (s *Service) GetDailyInfo(ctx context.Context, date time.Time) (DailyPriceI
 	}, nil
 }
 
-func (s *Service) GetDayRating(ctx context.Context, date time.Time) (DayRating, error) {
+func (s *Service) GetDayRating(ctx context.Context, t time.Time) (DayRating, error) {
 	// Get the prices for the given day
-	prices, err := s.GetDailyPrices(ctx, date)
+	prices, err := s.GetDailyPrices(ctx, t)
 	if err != nil {
 		return Nil, err
 	}
 	if len(prices) == 0 {
-		return Nil, fmt.Errorf("no prices found for date %s", date)
+		return Nil, fmt.Errorf("no prices found for t %s", t)
 	}
 
 	// Get thirty-day average
-	avgPrice, err := s.GetThirtyDayAverage(ctx, date)
+	avgPrice, err := s.GetThirtyDayAverage(ctx, t)
 	if err != nil {
 		return Nil, err
 	}
@@ -170,14 +185,14 @@ func (s *Service) GetDayRating(ctx context.Context, date time.Time) (DayRating, 
 	return dayRating, nil
 }
 
-func (s *Service) GetDayAverage(ctx context.Context, date time.Time) (float64, error) {
+func (s *Service) GetDayAverage(ctx context.Context, t time.Time) (float64, error) {
 	// Get the prices for the given day
-	prices, err := s.GetDailyPrices(ctx, date)
+	prices, err := s.GetDailyPrices(ctx, t)
 	if err != nil {
 		return 0, err
 	}
 	if len(prices) == 0 {
-		return 0, fmt.Errorf("no prices found for date %s", date)
+		return 0, fmt.Errorf("no prices found for t %s", t)
 	}
 
 	// Get day average
@@ -186,18 +201,18 @@ func (s *Service) GetDayAverage(ctx context.Context, date time.Time) (float64, e
 	return dayAvg, nil
 }
 
-func (s *Service) GetCheapPeriods(ctx context.Context, date time.Time) ([][]Price, error) {
+func (s *Service) GetCheapPeriods(ctx context.Context, t time.Time) ([][]Price, error) {
 	// Get the prices for the given day
-	prices, err := s.GetDailyPrices(ctx, date)
+	prices, err := s.GetDailyPrices(ctx, t)
 	if err != nil {
 		return nil, err
 	}
 	if len(prices) == 0 {
-		return nil, fmt.Errorf("no prices found for date %s", date)
+		return nil, fmt.Errorf("no prices found for t %s", t)
 	}
 
 	// Get thirty-day average
-	avgPrice, err := s.GetThirtyDayAverage(ctx, date)
+	avgPrice, err := s.GetThirtyDayAverage(ctx, t)
 	if err != nil {
 		return nil, err
 	}
@@ -208,18 +223,18 @@ func (s *Service) GetCheapPeriods(ctx context.Context, date time.Time) ([][]Pric
 	return cheapPeriods, nil
 }
 
-func (s *Service) GetExpensivePeriods(ctx context.Context, date time.Time) ([][]Price, error) {
+func (s *Service) GetExpensivePeriods(ctx context.Context, t time.Time) ([][]Price, error) {
 	// Get the prices for the given day
-	prices, err := s.GetDailyPrices(ctx, date)
+	prices, err := s.GetDailyPrices(ctx, t)
 	if err != nil {
 		return nil, err
 	}
 	if len(prices) == 0 {
-		return nil, fmt.Errorf("no prices found for date %s", date)
+		return nil, fmt.Errorf("no prices found for t %s", t)
 	}
 
 	// Get thirty-day average
-	avgPrice, err := s.GetThirtyDayAverage(ctx, date)
+	avgPrice, err := s.GetThirtyDayAverage(ctx, t)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +295,10 @@ func (s *Service) GetThirtyDayAverage(ctx context.Context, t time.Time) (float64
 	return 0, fmt.Errorf("no results found")
 }
 
-func (s *Service) GetLatestPrice(ctx context.Context) (Price, error) {
+// GetLatestPrice returns the latest price from the database
+// It returns a boolean indicating if no price was found
+// and an error if there was one
+func (s *Service) GetLatestPrice(ctx context.Context) (Price, bool, error) {
 	// Define the aggregation pipeline
 	pipeline := mongo.Pipeline{
 		{{Key: "$sort", Value: bson.M{
@@ -291,7 +309,7 @@ func (s *Service) GetLatestPrice(ctx context.Context) (Price, error) {
 
 	cursor, err := s.Collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return Price{}, err
+		return Price{}, false, err
 	}
 
 	defer func(cursor *mongo.Cursor, ctx context.Context) {
@@ -304,10 +322,10 @@ func (s *Service) GetLatestPrice(ctx context.Context) (Price, error) {
 	var result Price
 	if cursor.Next(ctx) {
 		if err = cursor.Decode(&result); err != nil {
-			return Price{}, err
+			return Price{}, false, err
 		}
-		return result, nil
+		return result, false, nil
 	}
 
-	return Price{}, fmt.Errorf("no results found")
+	return Price{}, true, fmt.Errorf("no results found")
 }

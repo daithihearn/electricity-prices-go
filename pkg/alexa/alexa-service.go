@@ -12,7 +12,7 @@ import (
 )
 
 type Service struct {
-	PriceService price.Service
+	PriceService price.PriceService
 }
 
 func (s *Service) GetTitle(lang language.Tag) string {
