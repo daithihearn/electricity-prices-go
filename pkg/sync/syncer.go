@@ -44,7 +44,7 @@ func (s *Syncer) Sync(ctx context.Context, end time.Time) (bool, error) {
 		prices, synced, err := s.PrimaryClient.GetPrices(currentDate)
 
 		// If there is an error or the primary API is synced, try the backup API
-		if err != nil || synced {
+		if err != nil || synced || len(prices) == 0 {
 			err = nil
 			prices, synced, err = s.SecondaryClient.GetPrices(currentDate)
 		}
@@ -56,6 +56,11 @@ func (s *Syncer) Sync(ctx context.Context, end time.Time) (bool, error) {
 
 		if synced {
 			break
+		}
+
+		if len(prices) == 0 {
+			log.Printf("No prices for %s. Exiting...", currentDate.Format("January 2 2006"))
+			return false, nil
 		}
 
 		log.Printf("Syncing prices for %s", currentDate.Format("January 2 2006"))
