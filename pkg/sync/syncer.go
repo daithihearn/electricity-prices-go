@@ -30,13 +30,13 @@ func (s *Syncer) Sync(ctx context.Context, end time.Time) (bool, error) {
 		return false, err
 	}
 
-	log.Println("Last day expectSynced: ", p.DateTime.Format("January 2 2006"))
+	log.Println("Last day synced: ", p.DateTime.Format("January 2 2006"))
 	currentDate := date.StartOfDay(p.DateTime).AddDate(0, 0, 1)
 
 	// Keep processing until we reach tomorrow
 	for {
 		// If we reach the end date, exit
-		if currentDate.After(date.StartOfDay(end).Add(-time.Hour)) {
+		if currentDate.After(date.StartOfDay(end).Add(time.Hour)) {
 			break
 		}
 
