@@ -23,6 +23,7 @@ func TestSync(t *testing.T) {
 		secondaryGetPricesSynced *[]bool
 		secondaryGetPricesErr    *[]error
 		mockSavePricesErr        *[]error
+		savePricesCount          *testdata.CallCounter
 		expectError              bool
 		expectSynced             bool
 	}{
@@ -45,14 +46,17 @@ func TestSync(t *testing.T) {
 					},
 				},
 			},
-			primaryGetPricesSynced:   &[]bool{true},
+			primaryGetPricesSynced:   &[]bool{false, true},
 			primaryGetPricesErr:      &[]error{nil},
 			secondaryGetPricesResp:   &[][]price.Price{},
-			secondaryGetPricesSynced: &[]bool{},
+			secondaryGetPricesSynced: &[]bool{true},
 			secondaryGetPricesErr:    &[]error{},
-			mockSavePricesErr:        &[]error{nil},
-			expectError:              false,
-			expectSynced:             true,
+			savePricesCount: &testdata.CallCounter{
+				Count: 1,
+			},
+			mockSavePricesErr: &[]error{nil},
+			expectError:       false,
+			expectSynced:      true,
 		},
 		{
 			name:    "Primary Client error, Secondary Client successful",
@@ -66,7 +70,7 @@ func TestSync(t *testing.T) {
 			getLatestPriceErr:      &[]error{nil},
 			primaryGetPricesResp:   &[][]price.Price{},
 			primaryGetPricesSynced: &[]bool{},
-			primaryGetPricesErr:    &[]error{fmt.Errorf("error")},
+			primaryGetPricesErr:    &[]error{fmt.Errorf("error"), fmt.Errorf("error")},
 			secondaryGetPricesResp: &[][]price.Price{
 				{
 					{
@@ -75,11 +79,14 @@ func TestSync(t *testing.T) {
 					},
 				},
 			},
-			secondaryGetPricesSynced: &[]bool{true},
+			secondaryGetPricesSynced: &[]bool{false, true},
 			secondaryGetPricesErr:    &[]error{nil},
-			mockSavePricesErr:        &[]error{nil},
-			expectError:              false,
-			expectSynced:             true,
+			savePricesCount: &testdata.CallCounter{
+				Count: 1,
+			},
+			mockSavePricesErr: &[]error{nil},
+			expectError:       false,
+			expectSynced:      true,
 		},
 		{
 			name:    "Primary Client unsuccessful, Secondary Client successful",
@@ -103,11 +110,14 @@ func TestSync(t *testing.T) {
 					},
 				},
 			},
-			secondaryGetPricesSynced: &[]bool{true},
+			secondaryGetPricesSynced: &[]bool{false, true},
 			secondaryGetPricesErr:    &[]error{nil},
-			mockSavePricesErr:        &[]error{nil},
-			expectError:              false,
-			expectSynced:             true,
+			savePricesCount: &testdata.CallCounter{
+				Count: 1,
+			},
+			mockSavePricesErr: &[]error{nil},
+			expectError:       false,
+			expectSynced:      true,
 		},
 		{
 			name:    "Primary Client unsuccessful, Secondary Client unsuccessful",
@@ -126,9 +136,12 @@ func TestSync(t *testing.T) {
 			secondaryGetPricesResp:   &[][]price.Price{},
 			secondaryGetPricesSynced: &[]bool{},
 			secondaryGetPricesErr:    &[]error{fmt.Errorf("error")},
-			mockSavePricesErr:        &[]error{nil},
-			expectError:              true,
-			expectSynced:             false,
+			savePricesCount: &testdata.CallCounter{
+				Count: 0,
+			},
+			mockSavePricesErr: &[]error{nil},
+			expectError:       true,
+			expectSynced:      false,
 		},
 		{
 			name:                     "Error getting latest price",
@@ -142,9 +155,36 @@ func TestSync(t *testing.T) {
 			secondaryGetPricesResp:   &[][]price.Price{},
 			secondaryGetPricesSynced: &[]bool{},
 			secondaryGetPricesErr:    &[]error{},
-			mockSavePricesErr:        &[]error{nil},
-			expectError:              true,
-			expectSynced:             false,
+			savePricesCount: &testdata.CallCounter{
+				Count: 0,
+			},
+			mockSavePricesErr: &[]error{nil},
+			expectError:       true,
+			expectSynced:      false,
+		},
+		{
+			name:    "endDate is day after last synced date",
+			endDate: time.Date(2021, 6, 1, 0, 0, 0, 0, time.Local),
+			getLatestPriceResp: &[]price.Price{
+				{
+					DateTime: time.Date(2021, 6, 1, 0, 0, 0, 0, time.Local),
+					Price:    1.0,
+				},
+			},
+			getLatestPriceNoResult:   &[]bool{false},
+			getLatestPriceErr:        &[]error{nil},
+			primaryGetPricesResp:     &[][]price.Price{},
+			primaryGetPricesSynced:   &[]bool{},
+			primaryGetPricesErr:      &[]error{},
+			secondaryGetPricesResp:   &[][]price.Price{},
+			secondaryGetPricesSynced: &[]bool{},
+			secondaryGetPricesErr:    &[]error{},
+			savePricesCount: &testdata.CallCounter{
+				Count: 0,
+			},
+			mockSavePricesErr: &[]error{nil},
+			expectError:       false,
+			expectSynced:      true,
 		},
 	}
 	for _, test := range tests {
@@ -153,6 +193,7 @@ func TestSync(t *testing.T) {
 			MockGetLatestPriceResult:   test.getLatestPriceResp,
 			MockGetLatestPriceNoResult: test.getLatestPriceNoResult,
 			MockGetLatestPriceError:    test.getLatestPriceErr,
+			MockSavePricesCount:        test.savePricesCount,
 			MockSavePricesError:        test.mockSavePricesErr,
 		}
 
@@ -187,6 +228,9 @@ func TestSync(t *testing.T) {
 			}
 			if synced != test.expectSynced {
 				t.Errorf("Expected expectSynced to be %v but got %v", test.expectSynced, synced)
+			}
+			if test.savePricesCount.Count != 0 {
+				t.Errorf("Expected savePricesCount to be 0 but got %v", test.savePricesCount.Count)
 			}
 		})
 	}

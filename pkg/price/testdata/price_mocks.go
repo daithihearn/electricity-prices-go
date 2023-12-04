@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+// Define a struct with a counter field
+type CallCounter struct {
+	Count int
+}
+
 // A mock implementation of PriceService
 
 type MockPriceService struct {
@@ -16,6 +21,7 @@ type MockPriceService struct {
 	MockGetPriceError             *[]error
 	MockGetPricesResult           *[][]price.Price
 	MockGetPricesError            *[]error
+	MockSavePricesCount           *CallCounter
 	MockSavePricesError           *[]error
 	MockGetDailyPricesResult      *[][]price.Price
 	MockGetDailyPricesError       *[]error
@@ -110,6 +116,9 @@ func (m *MockPriceService) GetPrices(ctx context.Context, start time.Time, end t
 }
 
 func (m *MockPriceService) SavePrices(ctx context.Context, prices []price.Price) error {
+	// Decrement the counter
+	m.MockSavePricesCount.Count--
+
 	// Get the first element of the error array and remove it from the array, return nil if the array is empty
 	var err error
 	if len(*m.MockSavePricesError) > 0 {
