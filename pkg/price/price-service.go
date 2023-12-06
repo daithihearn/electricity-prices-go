@@ -327,5 +327,5 @@ func (s *Service) GetLatestPrice(ctx context.Context) (Price, bool, error) {
 		return result, false, nil
 	}
 
-	return Price{}, true, fmt.Errorf("no results found")
+	return Price{}, true, nil
 }

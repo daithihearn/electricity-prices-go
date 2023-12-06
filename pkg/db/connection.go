@@ -26,7 +26,7 @@ func GetMongoClient(ctx context.Context) (*mongo.Client, error) {
 			return
 		}
 
-		log.Println("Connecting to MongoDB:", connectionString)
+		log.Println("Connecting to MongoDB...")
 
 		clientOptions := options.Client().ApplyURI(connectionString)
 
@@ -46,14 +46,14 @@ func GetMongoClient(ctx context.Context) (*mongo.Client, error) {
 	return clientInstance, clientInstanceError
 }
 
-func GetCollection(ctx context.Context) (*mongo.Collection, error) {
+func GetCollection(ctx context.Context, dbName, colName string) (*mongo.Collection, error) {
 	client, err := GetMongoClient(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	db := client.Database("electricity-prices")
-	collection := db.Collection("prices")
+	db := client.Database(dbName)
+	collection := db.Collection(colName)
 
 	return collection, nil
 }

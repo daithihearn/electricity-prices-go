@@ -45,8 +45,19 @@ func main() {
 		os.Exit(0)
 	}()
 
+	// Get the db name and collection name
+	dbName := os.Getenv("MONGODB_DB")
+	if dbName == "" {
+		dbName = "electricity-prices"
+	}
+
+	colName := os.Getenv("MONGODB_COLLECTION")
+	if colName == "" {
+		colName = "prices"
+	}
+
 	// Configure services
-	col, err := db.GetCollection(ctx)
+	col, err := db.GetCollection(ctx, dbName, colName)
 	if err != nil {
 		cancel()
 		log.Fatal("Failed to get collection: ", err)
