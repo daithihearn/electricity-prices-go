@@ -1,0 +1,10 @@
+build:
+  docker:
+    web: Dockerfile
+    worker: Dockerfile
+
+release:
+
+run:
+  web: ./api
+  worker: ./sync
