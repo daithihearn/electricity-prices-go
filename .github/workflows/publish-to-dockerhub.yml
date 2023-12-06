@@ -22,9 +22,14 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Log in to Heroku
+      - name: Install Heroku CLI
         run: |
-          docker run -e HEROKU_API_KEY=${{ secrets.HEROKU_API_KEY }} heroku/heroku:18 container:login
+          curl https://cli-assets.heroku.com/install.sh | sh
+      - name: Log in to Heroku Container Registry
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          heroku container:login
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -32,5 +37,8 @@ jobs:
         run: |
           docker buildx build --platform linux/amd64,linux/arm64/v8,linux/arm/v7,linux/ppc64le,linux/s390x -t daithihearn/electricity-prices:latest -t daithihearn/electricity-prices:${{ github.ref_name }} -t registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web --push .
       - name: Release the container
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
         run: |
-          docker run -e HEROKU_API_KEY=${{ secrets.HEROKU_API_KEY }} heroku/heroku:18 container:release web --app ${{ secrets.HEROKU_APP_NAME }}
+          heroku container:release web --app $HEROKU_APP_NAME
