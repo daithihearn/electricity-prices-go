@@ -26,4 +26,4 @@ jobs:
         uses: docker/setup-qemu-action@v3
       - name: Build and publish Docker image for multiple architectures
         run: |
-          docker buildx build --platform linux/amd64,linux/arm64/v8,linux/arm/v7,linux/ppc64le,linux/s390x -t daithihearn/electricity-prices:latest -t daithihearn/electricity-prices:${{ github.ref_name }} --push .
+          docker buildx build --platform linux/amd64,linux/arm64/v8,linux/arm/v7,linux/ppc64le,linux/s390x -t daithihearn/electricity-prices:latest -t daithihearn/electricity-prices:${{ github.ref_name }} -t registry.heroku.com/elec-prices/web:latest -t registry.heroku.com/elec-prices/web:${{ github.ref_name }} --push .
