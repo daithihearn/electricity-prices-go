@@ -1,7 +1,5 @@
 build:
   docker:
     web: Dockerfile
-    worker: Dockerfile
 run:
   web: ./api
-  worker: ./sync
