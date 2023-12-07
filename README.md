@@ -55,3 +55,12 @@ docker run -d --rm elec-prices-sync ./sync
 ```
 
 Running without the `./sync` will run the API.
+
+## CORs
+You must configure CORs by setting an environment variable `CORS_ALLOWED_ORIGINS` to a comma separated list of origins. For example:
+
+```bash
+CORS_ALLOWED_ORIGINS=http://localhost:3000,https://elec.daithiapp.com
+```
+
+Please ensure there are no spaces in the list.

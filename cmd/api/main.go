@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -84,8 +85,16 @@ func main() {
 	router := gin.Default()
 
 	// Configure CORS with custom settings
+	// Get the environment variable
+	origins := os.Getenv("CORS_ALLOWED_ORIGINS")
+
+	// Check if the environment variable is empty and set a default value
+	if origins == "" {
+		origins = "http://localhost:888,http://localhost:3000" // Replace with your default list
+	}
+
 	config := cors.Config{
-		AllowOrigins:  []string{"https://elec.daithiapp.com", "http://localhost:888", "http://localhost:3000"},
+		AllowOrigins:  strings.Split(origins, ","),
 		AllowMethods:  []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:  []string{"Origin", "Content-Length", "Content-Type"},
 		ExposeHeaders: []string{"Content-Length"},
