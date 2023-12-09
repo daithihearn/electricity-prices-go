@@ -116,6 +116,11 @@ func main() {
 	}
 	router.Use(cors.New(config))
 
+	// Redirect from root to /swagger/index.html
+	router.GET("/", func(c *gin.Context) {
+		c.Redirect(302, "/swagger/index.html")
+	})
+
 	// Configure the routes
 	router.GET("/api/v1/price", priceHandler.GetPrices)
 	router.GET("/api/v1/price/averages", priceHandler.GetThirtyDayAverages)
