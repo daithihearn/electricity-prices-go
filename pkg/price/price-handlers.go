@@ -10,7 +10,7 @@ import (
 )
 
 type Handler struct {
-	PriceService PriceService
+	PriceService Service
 }
 
 // GetPrices @Summary Get price info

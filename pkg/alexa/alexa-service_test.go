@@ -23,9 +23,9 @@ var period2 []price.Price
 var period3 []price.Price
 var period4 []price.Price
 
-//// Mock Price Service
+//// Mock Price Receiver
 //type MockPriceService struct {
-//	price.Service
+//	price.Receiver
 //	mockGetDailyInfoResult price.DailyPriceInfo
 //}
 //
@@ -760,8 +760,8 @@ func TestGetPriceMessage(t *testing.T) {
 //				mockGetDailyInfoResult: tc.mockResultToday,
 //			}
 //
-//			service := &Service{
-//				PriceService: mockPriceService,
+//			service := &Receiver{
+//				Service: mockPriceService,
 //			}
 //
 //			actual, _ := service.GetFullFeed(ctx, now, tc.lang)

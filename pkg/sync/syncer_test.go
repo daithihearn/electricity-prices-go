@@ -188,7 +188,7 @@ func TestSync(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		// Create a mock PriceService
+		// Create a mock Service
 		mockPriceService := &testdata.MockPriceService{
 			MockGetLatestPriceResult:   test.getLatestPriceResp,
 			MockGetLatestPriceNoResult: test.getLatestPriceNoResult,

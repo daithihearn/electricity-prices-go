@@ -76,7 +76,7 @@ func main() {
 		log.Fatal("Failed to get collection: ", err)
 	}
 	priceCollection := price.PriceCollection{Col: col}
-	priceService := price.Service{Collection: priceCollection}
+	priceService := price.Receiver{Collection: priceCollection}
 	priceHandler := price.Handler{PriceService: &priceService}
 	alexaService := alexa.Service{PriceService: &priceService}
 	alexaHandler := alexa.Handler{AlexaService: alexaService}

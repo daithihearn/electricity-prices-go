@@ -11,7 +11,7 @@ type CallCounter struct {
 	Count int
 }
 
-// A mock implementation of PriceService
+// A mock implementation of Service
 
 type MockPriceService struct {
 	MockGetLatestPriceResult      *[]price.Price
@@ -307,7 +307,7 @@ func (m *MockPriceService) GetThirtyDayAverage(ctx context.Context, t time.Time)
 	return result, err
 }
 
-// A mock implementation of PriceClient
+// A mock implementation of Client
 
 type MockPriceClient struct {
 	MockGetPricesResult *[][]price.Price

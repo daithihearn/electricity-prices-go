@@ -11,7 +11,7 @@ func WrapAlexaResponse(title, message string) AlexaResponse {
 		UpdateDate:     time.Now().Format("2006-01-02T15:04:05.000Z"),
 		TitleText:      title,
 		MainText:       message,
-		RedirectionUrl: "https://elec.daithiapp.com/",
+		RedirectionUrl: "https://preciosdelaelectricidad.es/",
 	}
 }
 

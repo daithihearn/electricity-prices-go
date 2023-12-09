@@ -3,7 +3,7 @@
 
 An API for electricity prices in Spain. Data is scraped from [REData Api](https://www.ree.es/en/apidatos) and exposed via a [restful API](https://elec-api.daithiapp.com/).
 
-This API supports a [dashboard application](https://elec.daithiapp.com/), an Alexa Skill and Flash briefing.
+This API supports a [dashboard application](https://preciosdelaelectricidad.es/), an Alexa Skill and Flash briefing.
 
 In addition to the API there is a sync job that can be run separately to sync data from REData.
 
