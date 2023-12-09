@@ -11,6 +11,7 @@ import (
 	"electricity-prices/pkg/db"
 	"electricity-prices/pkg/i18n"
 	"electricity-prices/pkg/price"
+	"golang.org/x/text/language"
 	"log"
 	"os"
 	"os/signal"
@@ -56,7 +57,17 @@ func main() {
 	}()
 
 	// Initialise Translations
-	err := i18n.InitialiseTranslations()
+	err := i18n.InitialiseTranslations(
+		[]i18n.File{
+			{
+				Filename: "en.toml",
+				Lang:     language.English,
+			},
+			{
+				Filename: "es.toml",
+				Lang:     language.Spanish,
+			},
+		})
 	if err != nil {
 		cancel()
 		log.Fatal("Failed to initialise translations: ", err)

@@ -17,11 +17,16 @@ var translationsFS embed.FS
 
 type Translations map[string]string
 
-func loadTranslations(lang language.Tag, filename string) error {
+type File struct {
+	Filename string
+	Lang     language.Tag
+}
+
+func loadTranslations(file File) error {
 	var translations Translations
 
 	// Reading the file from the embedded filesystem
-	data, err := translationsFS.ReadFile(filename)
+	data, err := translationsFS.ReadFile(file.Filename)
 	if err != nil {
 		return err
 	}
@@ -32,7 +37,7 @@ func loadTranslations(lang language.Tag, filename string) error {
 	}
 
 	for key, value := range translations {
-		err := message.SetString(lang, key, value)
+		err := message.SetString(file.Lang, key, value)
 		if err != nil {
 			return err
 		}
@@ -41,15 +46,14 @@ func loadTranslations(lang language.Tag, filename string) error {
 	return nil
 }
 
-func InitialiseTranslations() error {
+func InitialiseTranslations(files []File) error {
 	log.Println("Loading translations")
-	err := loadTranslations(language.English, "en.toml")
-	if err != nil {
-		return err
-	}
-	err = loadTranslations(language.Spanish, "es.toml")
-	if err != nil {
-		return err
+
+	for _, file := range files {
+		err := loadTranslations(file)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
