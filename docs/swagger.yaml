@@ -67,7 +67,7 @@ info:
   contact: {}
   description: Returns PVPC electricity prices for a given range
   title: Electricity Prices API
-  version: 2.1.18
+  version: 2.1.19
 paths:
   /alexa:
     get:
