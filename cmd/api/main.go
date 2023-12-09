@@ -1,5 +1,5 @@
 // @title Electricity Prices API
-// @version 2.1.5
+// @version 2.1.18
 // @description Returns PVPC electricity prices for a given range
 // @BasePath /api/v1
 package main
@@ -115,6 +115,11 @@ func main() {
 		ExposeHeaders: []string{"Content-Length"},
 	}
 	router.Use(cors.New(config))
+
+	// Redirect from root to /swagger/index.html
+	router.GET("/", func(c *gin.Context) {
+		c.Redirect(302, "/swagger/index.html")
+	})
 
 	// Configure the routes
 	router.GET("/api/v1/price", priceHandler.GetPrices)
