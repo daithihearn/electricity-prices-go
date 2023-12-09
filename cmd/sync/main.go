@@ -63,7 +63,7 @@ func main() {
 		log.Fatal("Failed to get collection: ", err)
 	}
 	priceCollection := price.PriceCollection{Col: col}
-	priceService := price.Service{Collection: priceCollection}
+	priceService := price.Receiver{Collection: priceCollection}
 	reeClient := ree.Client{
 		Http: &http.Client{Timeout: time.Second * 30},
 	}

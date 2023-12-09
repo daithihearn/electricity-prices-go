@@ -10,7 +10,7 @@ permissions:
 jobs:
   unit-tests:
     name: Run unit tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Set up Go

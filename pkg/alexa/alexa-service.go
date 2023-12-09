@@ -12,7 +12,7 @@ import (
 )
 
 type Service struct {
-	PriceService price.PriceService
+	PriceService price.Service
 }
 
 func (s *Service) GetTitle(lang language.Tag) string {
@@ -67,17 +67,21 @@ func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaInte
 	case "AMAZON.StopIntent":
 		endSess = true
 		msg = p.Sprintf("alexa_stop")
-	case "AMAZON.NavigateHomeIntent":
-		msg = ""
-	case "AMAZON.FallbackIntent":
+	case "AMAZON.NavigateHomeIntent", "AMAZON.FallbackIntent":
 		msg = p.Sprintf("alexa_welcome")
 	case "FULL":
-		msg, _ = s.GetFullFeed(ctx, t, lang)
+		feed, err := s.GetFullFeed(ctx, t, lang)
+		if err != nil {
+			msg = s.getUnknownError(lang)
+		}
+		if feed != "" {
+			msg = feed
+		}
 	case "TODAY", "TODAY_AVERAGE":
 		rating, err := s.PriceService.GetDayRating(ctx, t)
 		avg, err2 := s.PriceService.GetDayAverage(ctx, t)
 		if err != nil || err2 != nil {
-			msg = s.getTodayNoDataMessage(lang)
+			msg = s.getUnknownError(lang)
 		} else {
 			msg = s.getTodayRatingMessage(rating, avg, lang)
 		}
@@ -86,28 +90,28 @@ func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaInte
 		rating, err := s.PriceService.GetDayRating(ctx, tomorrow)
 		avg, err2 := s.PriceService.GetDayAverage(ctx, tomorrow)
 		if err != nil || err2 != nil {
-			msg = s.getTomorrowNoDataMessage(lang)
+			msg = s.getUnknownError(lang)
 		} else {
 			msg = s.getTomorrowRatingMessage(rating, avg, lang)
 		}
 	case "NEXT_CHEAP":
 		cheapPeriods, err := s.PriceService.GetCheapPeriods(ctx, t)
 		if err != nil {
-			msg = p.Sprintf("alexa_next_cheap_period_nodata")
+			msg = s.getUnknownError(lang)
 		} else {
 			msg = s.getNextCheapPeriodMessage(cheapPeriods, t, lang)
 		}
 	case "NEXT_EXPENSIVE":
 		expensivePeriods, err := s.PriceService.GetExpensivePeriods(ctx, t)
 		if err != nil {
-			msg = p.Sprintf("alexa_next_expensive_period_nodata")
+			msg = s.getUnknownError(lang)
 		} else {
 			msg = s.getNextExpensivePeriodMessage(expensivePeriods, t, lang)
 		}
 	case "CURRENT_PRICE":
 		pr, err := s.PriceService.GetPrice(ctx, t)
 		if err != nil {
-			msg = p.Sprintf("alexa_today_nodata")
+			msg = s.getUnknownError(lang)
 		} else {
 			msg = p.Sprintf("alexa_current_price", price.FormatPrice(pr.Price))
 		}
@@ -115,7 +119,7 @@ func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaInte
 	case "THIRTY_DAY_AVERAGE":
 		avg, err := s.PriceService.GetThirtyDayAverage(ctx, t)
 		if err != nil {
-			msg = p.Sprintf("alexa_today_nodata")
+			msg = s.getUnknownError(lang)
 		} else {
 			msg = p.Sprintf("alexa_thirty_day_average", price.FormatPrice(avg))
 		}
@@ -126,6 +130,12 @@ func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaInte
 	return WrapAlexaSkillResponse(msg, endSess)
 }
 
+func (s *Service) getUnknownError(lang language.Tag) string {
+	p := message.NewPrinter(lang)
+	errMesg := p.Sprintf("alexa_unknown_error")
+
+	return errMesg
+}
 func (s *Service) getTodayNoDataMessage(lang language.Tag) string {
 	p := message.NewPrinter(lang)
 	noData := p.Sprintf("alexa_today_nodata")

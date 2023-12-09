@@ -68,7 +68,7 @@ func TestGetPrice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCollection := &MockCollection{mockFindOneResult: tt.mockResult, mockFindOneErr: tt.mockError}
-			service := &Service{Collection: mockCollection}
+			service := &Receiver{Collection: mockCollection}
 
 			result, err := service.GetPrice(ctx, now)
 
@@ -117,7 +117,7 @@ func TestGetPrices(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCollection := &MockCollection{mockFindResult: tt.mockResult, mockFindErr: tt.mockError}
-			service := &Service{Collection: mockCollection}
+			service := &Receiver{Collection: mockCollection}
 
 			result, err := service.GetPrices(ctx, now, now)
 
@@ -166,7 +166,7 @@ func TestGetDailyPrices(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCollection := &MockCollection{mockFindResult: tt.mockResult, mockFindErr: tt.mockError}
-			service := &Service{Collection: mockCollection}
+			service := &Receiver{Collection: mockCollection}
 
 			result, err := service.GetDailyPrices(ctx, now)
 
@@ -220,7 +220,7 @@ func TestGetDailyAverages(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCollection := &MockCollection{mockFindResult: tt.mockResult, mockFindErr: tt.mockError}
-			service := &Service{Collection: mockCollection}
+			service := &Receiver{Collection: mockCollection}
 
 			result, err := service.GetDailyAverages(ctx, now, 3)
 

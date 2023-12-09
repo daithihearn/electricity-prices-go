@@ -32,8 +32,8 @@ func TestWrapAlexaResponse(t *testing.T) {
 			if actual.MainText != tc.message {
 				t.Errorf("shouldContain %s, got %s", tc.message, actual.MainText)
 			}
-			if actual.RedirectionUrl != "https://elec.daithiapp.com/" {
-				t.Errorf("shouldContain https://elec.daithiapp.com/, got %s", actual.RedirectionUrl)
+			if actual.RedirectionUrl != "https://preciosdelaelectricidad.es/" {
+				t.Errorf("shouldContain https://preciosdelaelectricidad.es/, got %s", actual.RedirectionUrl)
 			}
 			if actual.UpdateDate == "" {
 				t.Errorf("shouldContain non-empty UpdateDate, got %s", actual.UpdateDate)

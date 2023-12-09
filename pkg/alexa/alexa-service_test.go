@@ -1,8 +1,11 @@
 package alexa
 
 import (
+	"context"
 	"electricity-prices/pkg/i18n"
 	"electricity-prices/pkg/price"
+	"electricity-prices/pkg/price/testdata"
+	"errors"
 	"golang.org/x/text/language"
 	"log"
 	"os"
@@ -14,68 +17,14 @@ import (
 var alexaService Service
 var madridLocation *time.Location
 
-//var pricesToday []price.Price
-//
-//var pricesTomorrow []price.Price
+var pricesToday []price.Price
+
+var pricesTomorrow []price.Price
 
 var period1 []price.Price
 var period2 []price.Price
 var period3 []price.Price
 var period4 []price.Price
-
-//// Mock Price Service
-//type MockPriceService struct {
-//	price.Service
-//	mockGetDailyInfoResult price.DailyPriceInfo
-//}
-//
-//func (s *MockPriceService) GetPrice(ctx context.Context, t time.Time) (price.Price, error) {
-//	return price.Price{}, nil
-//}
-//
-//func (s *MockPriceService) GetPrices(ctx context.Context, start time.Time, end time.Time) ([]price.Price, error) {
-//	return []price.Price{}, nil
-//}
-//
-//func (s *MockPriceService) SavePrices(ctx context.Context, prices []price.Price) error {
-//	return nil
-//}
-//
-//func (s *MockPriceService) GetDailyPrices(ctx context.Context, t time.Time) ([]price.Price, error) {
-//	return []price.Price{}, nil
-//}
-//
-//func (s *MockPriceService) GetDailyAverages(ctx context.Context, date time.Time, numberOfDays int) ([]price.DailyAverage, error) {
-//	return []price.DailyAverage{}, nil
-//}
-//
-//func (s *MockPriceService) GetDailyInfo(ctx context.Context, date time.Time) (price.DailyPriceInfo, error) {
-//	return s.mockGetDailyInfoResult, nil
-//}
-//
-//func (s *MockPriceService) GetDayRating(ctx context.Context, t time.Time) (price.DayRating, error) {
-//	return price.Nil, nil
-//}
-//
-//func (s *MockPriceService) GetDayAverage(ctx context.Context, t time.Time) (float64, error) {
-//	return 0, nil
-//}
-//
-//func (s *MockPriceService) GetCheapPeriods(ctx context.Context, date time.Time) ([][]price.Price, error) {
-//	return [][]price.Price{}, nil
-//}
-//
-//func (s *MockPriceService) GetExpensivePeriods(ctx context.Context, date time.Time) ([][]price.Price, error) {
-//	return [][]price.Price{}, nil
-//}
-//
-//func (s *MockPriceService) GetThirtyDayAverage(ctx context.Context, t time.Time) (float64, error) {
-//	return 0, nil
-//}
-//
-//func (s *MockPriceService) GetLatestPrice(ctx context.Context) (price.Price, error) {
-//	return price.Price{}, nil
-//}
 
 func TestMain(m *testing.M) {
 
@@ -88,16 +37,17 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	//for i := 0; i < 24; i++ {
-	//	pricesToday[i] = price.Price{
-	//		DateTime: time.Date(2023, 1, 1, i, 0, 0, 0, madridLocation),
-	//		Price:    0.1 + float64(i)/10,
-	//	}
-	//	pricesTomorrow[i] = price.Price{
-	//		DateTime: time.Date(2023, 1, 2, i, 0, 0, 0, madridLocation),
-	//		Price:    0.2 + float64(i)/10,
-	//	}
-	//}
+	for i := 0; i < 24; i++ {
+		pricesToday = append(pricesToday, price.Price{
+			DateTime: time.Date(2023, 1, 1, i, 0, 0, 0, madridLocation),
+			Price:    0.01 + float64(i)/100,
+		})
+
+		pricesTomorrow = append(pricesTomorrow, price.Price{
+			DateTime: time.Date(2023, 1, 2, i, 0, 0, 0, madridLocation),
+			Price:    0.02 + float64(i)/100,
+		})
+	}
 
 	period1 = []price.Price{
 		{
@@ -165,7 +115,7 @@ func TestGetTitle(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			actual := alexaService.GetTitle(tc.lang)
 			if !strings.Contains(actual, tc.shouldContain) {
-				t.Errorf("shouldContain '%s' to contain: '%s'", actual, tc.shouldContain)
+				t.Errorf("Expected '%s' to contain: '%s'", actual, tc.shouldContain)
 			}
 		})
 	}
@@ -476,7 +426,7 @@ func TestGetNextExpensivePeriodMessage(t *testing.T) {
 				period1, period2,
 			},
 			lang:           language.Spanish,
-			shouldContain1: "Los períodos caros de hoy ya ha pasado.",
+			shouldContain1: "Los períodos caros de hoy ya han pasado.",
 			shouldContain2: "",
 			shouldContain3: "",
 		},
@@ -695,100 +645,902 @@ func TestGetPriceMessage(t *testing.T) {
 	}
 }
 
-//func TestGetFullFeed(t *testing.T) {
-//	ctx := context.TODO()
-//	now := time.Now()
-//	testCases := []struct {
-//		name            string
-//		mockResultToday price.DailyPriceInfo
-//		mockErrorToday  error
-//		mockResultTmrw  price.DailyPriceInfo
-//		mockErrorTmrw   error
-//		lang            language.Tag
-//		shouldContain1  string
-//		shouldContain2  string
-//		shouldContain3  string
-//		shouldContain4  string
-//		shouldContain5  string
-//		shouldContain6  string
-//		shouldContain7  string
-//		shouldContain8  string
-//	}{
-//		{
-//			name: "English",
-//			mockResultToday: price.DailyPriceInfo{
-//				DayRating:        price.Good,
-//				DayAverage:       0.1,
-//				ThirtyDayAverage: 0.2,
-//				Prices:           pricesToday,
-//				ExpensivePeriods: [][]price.Price{
-//					period1, period2,
-//				},
-//				CheapPeriods: [][]price.Price{
-//					period3, period4,
-//				},
-//			},
-//			mockErrorToday: nil,
-//			mockResultTmrw: price.DailyPriceInfo{
-//				DayRating:        price.Normal,
-//				DayAverage:       0.15,
-//				ThirtyDayAverage: 0.25,
-//				Prices:           pricesTomorrow,
-//				ExpensivePeriods: [][]price.Price{
-//					{pricesTomorrow[2], pricesTomorrow[3]},
-//				},
-//				CheapPeriods: [][]price.Price{
-//					{pricesTomorrow[4], pricesTomorrow[5]},
-//				},
-//			},
-//			lang:           language.English,
-//			shouldContain1: "Electricity Prices",
-//			shouldContain2: "good",
-//			shouldContain3: "10 cents per kilowatt-hour",
-//			shouldContain4: "normal",
-//			shouldContain5: "20 cents per kilowatt-hour",
-//			shouldContain6: "The current price is 10 cents per kilowatt-hour",
-//			shouldContain7: "next cheap period starts at 3 AM",
-//			shouldContain8: "next expensive period starts at 3 AM",
-//		},
-//	}
-//
-//	for _, tc := range testCases {
-//		t.Run(tc.name, func(t *testing.T) {
-//
-//			mockPriceService := &MockPriceService{
-//				mockGetDailyInfoResult: tc.mockResultToday,
-//			}
-//
-//			service := &Service{
-//				PriceService: mockPriceService,
-//			}
-//
-//			actual, _ := service.GetFullFeed(ctx, now, tc.lang)
-//			if !strings.Contains(actual, tc.shouldContain1) {
-//				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain1)
-//			}
-//			if !strings.Contains(actual, tc.shouldContain2) {
-//				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain2)
-//			}
-//			if !strings.Contains(actual, tc.shouldContain3) {
-//				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain3)
-//			}
-//			if !strings.Contains(actual, tc.shouldContain4) {
-//				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain4)
-//			}
-//			if !strings.Contains(actual, tc.shouldContain5) {
-//				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain5)
-//			}
-//			if !strings.Contains(actual, tc.shouldContain6) {
-//				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain6)
-//			}
-//			if !strings.Contains(actual, tc.shouldContain7) {
-//				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain7)
-//			}
-//			if !strings.Contains(actual, tc.shouldContain8) {
-//				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain8)
-//			}
-//		})
-//	}
-//}
+func TestGetFullFeed(t *testing.T) {
+	ctx := context.Background()
+	testCases := []struct {
+		name            string
+		t               time.Time
+		mockResultToday price.DailyPriceInfo
+		mockErrorToday  error
+		mockResultTmrw  price.DailyPriceInfo
+		mockErrorTmrw   error
+		lang            language.Tag
+		shouldContain1  string
+		shouldContain2  string
+		shouldContain3  string
+		shouldContain4  string
+		shouldContain5  string
+	}{
+		{
+			name: "Full feed - start of day (English)",
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			mockResultToday: price.DailyPriceInfo{
+				DayRating:        price.Good,
+				DayAverage:       0.1,
+				ThirtyDayAverage: 0.2,
+				Prices:           pricesToday,
+				ExpensivePeriods: [][]price.Price{
+					pricesToday[2:5], pricesToday[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesToday[10:11], pricesToday[13:14],
+				},
+			},
+			mockErrorToday: nil,
+			mockResultTmrw: price.DailyPriceInfo{
+				DayRating:        price.Normal,
+				DayAverage:       0.15,
+				ThirtyDayAverage: 0.25,
+				Prices:           pricesTomorrow,
+				ExpensivePeriods: [][]price.Price{
+					pricesTomorrow[2:5], pricesTomorrow[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesTomorrow[4:5],
+				},
+			},
+			mockErrorTmrw:  nil,
+			lang:           language.English,
+			shouldContain1: "Today is a good day with an average price of 10 cents per kilowatt-hour",
+			shouldContain2: "The current price is 2 cents per kilowatt-hour",
+			shouldContain3: "The next cheap period starts at 10 AM with an average price of 11 cents per kilowatt-hour and will end at 11 AM",
+			shouldContain4: "The next expensive period starts at 2 AM with an average price of 4 cents per kilowatt-hour and will end at 5 AM",
+			shouldContain5: "Tomorrow is a normal day with an average price of 15 cents per kilowatt-hour",
+		},
+		{
+			name: "Full feed - start of day (Spanish)",
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			mockResultToday: price.DailyPriceInfo{
+				DayRating:        price.Good,
+				DayAverage:       0.1,
+				ThirtyDayAverage: 0.2,
+				Prices:           pricesToday,
+				ExpensivePeriods: [][]price.Price{
+					pricesToday[2:5], pricesToday[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesToday[10:11], pricesToday[13:14],
+				},
+			},
+			mockErrorToday: nil,
+			mockResultTmrw: price.DailyPriceInfo{
+				DayRating:        price.Normal,
+				DayAverage:       0.15,
+				ThirtyDayAverage: 0.25,
+				Prices:           pricesTomorrow,
+				ExpensivePeriods: [][]price.Price{
+					pricesTomorrow[2:5], pricesTomorrow[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesTomorrow[4:5],
+				},
+			},
+			mockErrorTmrw:  nil,
+			lang:           language.Spanish,
+			shouldContain1: "Hoy es un día bueno, con un precio medio de 10 céntimos por kilovatio-hora.",
+			shouldContain2: "El precio actual es 2 céntimos por kilovatio-hora.",
+			shouldContain3: "El próximo período barato comienza a las 10 AM con un precio medio de 11 céntimos por kilovatio-hora y terminara a las 11 AM.",
+			shouldContain4: "El próximo período caro comienza a las 2 AM con un precio promedio de 4 céntimos por kilovatio-hora y terminara a las 5 AM.",
+			shouldContain5: "Mañana es un día normal, con un precio promedio de 15 céntimos por kilovatio-hora.",
+		},
+		{
+			name: "Full feed - first cheap period passed",
+			t:    time.Date(2023, 1, 1, 12, 0, 0, 0, madridLocation),
+			mockResultToday: price.DailyPriceInfo{
+				DayRating:        price.Good,
+				DayAverage:       0.1,
+				ThirtyDayAverage: 0.2,
+				Prices:           pricesToday,
+				ExpensivePeriods: [][]price.Price{
+					pricesToday[2:5], pricesToday[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesToday[10:11], pricesToday[13:14],
+				},
+			},
+			mockErrorToday: nil,
+			mockResultTmrw: price.DailyPriceInfo{
+				DayRating:        price.Normal,
+				DayAverage:       0.15,
+				ThirtyDayAverage: 0.25,
+				Prices:           pricesTomorrow,
+				ExpensivePeriods: [][]price.Price{
+					pricesTomorrow[2:5], pricesTomorrow[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesTomorrow[4:5],
+				},
+			},
+			mockErrorTmrw:  nil,
+			lang:           language.English,
+			shouldContain1: "Today is a good day with an average price of 10 cents per kilowatt-hour",
+			shouldContain2: "The current price is 13 cents per kilowatt-hour",
+			shouldContain3: "The next cheap period starts at 1 PM with an average price of 14 cents per kilowatt-hour and will end at 2 PM",
+			shouldContain4: "The expensive periods for today have already passed.",
+			shouldContain5: "Tomorrow is a normal day with an average price of 15 cents per kilowatt-hour",
+		},
+		{
+			name: "Full feed - first expensive period passed",
+			t:    time.Date(2023, 1, 1, 6, 0, 0, 0, madridLocation),
+			mockResultToday: price.DailyPriceInfo{
+				DayRating:        price.Good,
+				DayAverage:       0.1,
+				ThirtyDayAverage: 0.2,
+				Prices:           pricesToday,
+				ExpensivePeriods: [][]price.Price{
+					pricesToday[2:5], pricesToday[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesToday[10:11], pricesToday[13:14],
+				},
+			},
+			mockErrorToday: nil,
+			mockResultTmrw: price.DailyPriceInfo{
+				DayRating:        price.Normal,
+				DayAverage:       0.15,
+				ThirtyDayAverage: 0.25,
+				Prices:           pricesTomorrow,
+				ExpensivePeriods: [][]price.Price{
+					pricesTomorrow[2:5], pricesTomorrow[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesTomorrow[4:5],
+				},
+			},
+			mockErrorTmrw:  nil,
+			lang:           language.English,
+			shouldContain1: "Today is a good day with an average price of 10 cents per kilowatt-hour",
+			shouldContain2: "The current price is 7 cents per kilowatt-hour",
+			shouldContain3: "The next cheap period starts at 10 AM with an average price of 11 cents per kilowatt-hour and will end at 11 AM",
+			shouldContain4: "The next expensive period starts at 8 AM with an average price of 9 cents per kilowatt-hour and will end at 9 AM",
+			shouldContain5: "Tomorrow is a normal day with an average price of 15 cents per kilowatt-hour",
+		},
+		{
+			name: "Full feed - end of day",
+			t:    time.Date(2023, 1, 1, 23, 0, 0, 0, madridLocation),
+			mockResultToday: price.DailyPriceInfo{
+				DayRating:        price.Good,
+				DayAverage:       0.1,
+				ThirtyDayAverage: 0.2,
+				Prices:           pricesToday,
+				ExpensivePeriods: [][]price.Price{
+					pricesToday[2:5], pricesToday[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesToday[10:11], pricesToday[13:14],
+				},
+			},
+			mockErrorToday: nil,
+			mockResultTmrw: price.DailyPriceInfo{
+				DayRating:        price.Normal,
+				DayAverage:       0.15,
+				ThirtyDayAverage: 0.25,
+				Prices:           pricesTomorrow,
+				ExpensivePeriods: [][]price.Price{
+					pricesTomorrow[2:5], pricesTomorrow[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesTomorrow[4:5],
+				},
+			},
+			mockErrorTmrw:  nil,
+			lang:           language.English,
+			shouldContain1: "Today is a good day with an average price of 10 cents per kilowatt-hour",
+			shouldContain2: "The current price is 24 cents per kilowatt-hour",
+			shouldContain3: "The cheap periods for today have already passed",
+			shouldContain4: "The expensive periods for today have already passed.",
+			shouldContain5: "Tomorrow is a normal day with an average price of 15 cents per kilowatt-hour",
+		},
+		{
+			name: "Full feed - no prices tomorrow",
+			t:    time.Date(2023, 1, 1, 23, 0, 0, 0, madridLocation),
+			mockResultToday: price.DailyPriceInfo{
+				DayRating:        price.Good,
+				DayAverage:       0.1,
+				ThirtyDayAverage: 0.2,
+				Prices:           pricesToday,
+				ExpensivePeriods: [][]price.Price{
+					pricesToday[2:5], pricesToday[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesToday[10:11], pricesToday[13:14],
+				},
+			},
+			mockErrorToday: nil,
+			mockResultTmrw: price.DailyPriceInfo{},
+			mockErrorTmrw:  nil,
+			lang:           language.English,
+			shouldContain1: "Today is a good day with an average price of 10 cents per kilowatt-hour",
+			shouldContain2: "The current price is 24 cents per kilowatt-hour",
+			shouldContain3: "The cheap periods for today have already passed",
+			shouldContain4: "The expensive periods for today have already passed.",
+			shouldContain5: "",
+		},
+		{
+			name: "Full feed - no prices tomorrow error",
+			t:    time.Date(2023, 1, 1, 23, 0, 0, 0, madridLocation),
+			mockResultToday: price.DailyPriceInfo{
+				DayRating:        price.Good,
+				DayAverage:       0.1,
+				ThirtyDayAverage: 0.2,
+				Prices:           pricesToday,
+				ExpensivePeriods: [][]price.Price{
+					pricesToday[2:5], pricesToday[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesToday[10:11], pricesToday[13:14],
+				},
+			},
+			mockErrorToday: nil,
+			mockResultTmrw: price.DailyPriceInfo{},
+			mockErrorTmrw:  errors.New("error"),
+			lang:           language.English,
+			shouldContain1: "Today is a good day with an average price of 10 cents per kilowatt-hour",
+			shouldContain2: "The current price is 24 cents per kilowatt-hour",
+			shouldContain3: "The cheap periods for today have already passed",
+			shouldContain4: "The expensive periods for today have already passed.",
+			shouldContain5: "",
+		},
+		{
+			name:            "Full feed - no prices today",
+			t:               time.Date(2023, 1, 1, 23, 0, 0, 0, madridLocation),
+			mockResultToday: price.DailyPriceInfo{},
+			mockErrorToday:  nil,
+			mockResultTmrw:  price.DailyPriceInfo{},
+			mockErrorTmrw:   nil,
+			lang:            language.English,
+			shouldContain1:  "There is no data available yet for today",
+			shouldContain2:  "",
+			shouldContain3:  "",
+			shouldContain4:  "",
+			shouldContain5:  "",
+		},
+		{
+			name:            "Full feed - no prices today error",
+			t:               time.Date(2023, 1, 1, 23, 0, 0, 0, madridLocation),
+			mockResultToday: price.DailyPriceInfo{},
+			mockErrorToday:  errors.New("error"),
+			mockResultTmrw:  price.DailyPriceInfo{},
+			mockErrorTmrw:   nil,
+			lang:            language.English,
+			shouldContain1:  "",
+			shouldContain2:  "",
+			shouldContain3:  "",
+			shouldContain4:  "",
+			shouldContain5:  "",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			mockPriceService := &testdata.MockPriceService{
+				MockGetDailyInfoResult: &[]price.DailyPriceInfo{tc.mockResultToday, tc.mockResultTmrw},
+				MockGetDailyInfoError:  &[]error{tc.mockErrorToday, tc.mockErrorTmrw},
+			}
+
+			service := &Service{
+				PriceService: mockPriceService,
+			}
+
+			actual, _ := service.GetFullFeed(ctx, tc.t, tc.lang)
+			if !strings.Contains(actual, tc.shouldContain1) {
+				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain1)
+			}
+			if !strings.Contains(actual, tc.shouldContain2) {
+				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain2)
+			}
+			if !strings.Contains(actual, tc.shouldContain3) {
+				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain3)
+			}
+			if !strings.Contains(actual, tc.shouldContain4) {
+				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain4)
+			}
+			if !strings.Contains(actual, tc.shouldContain5) {
+				t.Errorf("'%s' should contain: '%s'", actual, tc.shouldContain5)
+			}
+		})
+	}
+}
+
+func TestProcessAlexaSkillRequest(t *testing.T) {
+	ctx := context.Background()
+	testCases := []struct {
+		name                string
+		lang                language.Tag
+		t                   time.Time
+		intent              AlexaIntent
+		mockFullFeed        price.DailyPriceInfo
+		mockFullFeedError   error
+		mockDayRating       price.DayRating
+		mockDayRatingError  error
+		mockDayAverage      float64
+		mockDayAverageError error
+		mockThirtyDayAvg    float64
+		mockThirtyDayErr    error
+		mockGetCheapPeriods [][]price.Price
+		mockGetCheapError   error
+		mockGetExpensive    [][]price.Price
+		mockGetExpensiveErr error
+		mockGetPrice        price.Price
+		mockGetPriceErr     error
+		expectMessage       string
+		expectEnd           bool
+	}{
+		{
+			name: "AMAZON.CancelIntent (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "AMAZON.CancelIntent",
+			},
+			expectMessage: "Goodbye!",
+			expectEnd:     true,
+		},
+		{
+			name: "AMAZON.CancelIntent (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "AMAZON.CancelIntent",
+			},
+			expectMessage: "¡Adiós!",
+			expectEnd:     true,
+		},
+		{
+			name: "AMAZON.HelpIntent (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "AMAZON.HelpIntent",
+			},
+			expectMessage: "You can ask for the current price, the average price today, the average price for the last 30 days, the next low 3-hour period, the next high 3-hour period, or a full update. What would you like to know?",
+			expectEnd:     false,
+		},
+		{
+			name: "AMAZON.HelpIntent (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "AMAZON.HelpIntent",
+			},
+			expectMessage: "Esta skill le permite obtener información sobre el precio de la electricidad en España. Puede preguntar por el precio actual, el precio promedio de hoy, el precio promedio de los últimos 30 días, el próximo período barato, el próximo período alto, el período barato actual y el período alto actual. También puede preguntar por el precio de mañana. Que le gustaría saber?",
+			expectEnd:     false,
+		},
+		{
+			name: "AMAZON.StopIntent (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "AMAZON.StopIntent",
+			},
+			expectMessage: "Goodbye!",
+			expectEnd:     true,
+		},
+		{
+			name: "AMAZON.StopIntent (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "AMAZON.StopIntent",
+			},
+			expectMessage: "¡Adiós!",
+			expectEnd:     true,
+		},
+		{
+			name: "AMAZON.NavigateHomeIntent (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "AMAZON.NavigateHomeIntent",
+			},
+			expectMessage: "Welcome to the electricity prices skill. Say, give me a full update.",
+			expectEnd:     false,
+		},
+		{
+			name: "AMAZON.NavigateHomeIntent (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "AMAZON.NavigateHomeIntent",
+			},
+			expectMessage: "Bienvenido a la skill de precios de la electricidad. Diga, dame una actualización completa.",
+			expectEnd:     false,
+		},
+		{
+			name: "AMAZON.FallbackIntent (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "AMAZON.FallbackIntent",
+			},
+			expectMessage: "Welcome to the electricity prices skill. Say, give me a full update.",
+			expectEnd:     false,
+		},
+		{
+			name: "AMAZON.FallbackIntent (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "AMAZON.FallbackIntent",
+			},
+			expectMessage: "Bienvenido a la skill de precios de la electricidad. Diga, dame una actualización completa.",
+			expectEnd:     false,
+		},
+		{
+			name: "FULL (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "FULL",
+			},
+			mockFullFeed: price.DailyPriceInfo{
+				DayRating:        price.Good,
+				DayAverage:       0.1,
+				ThirtyDayAverage: 0.2,
+				Prices:           pricesToday,
+				ExpensivePeriods: [][]price.Price{
+					pricesToday[2:5], pricesToday[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesToday[10:11], pricesToday[13:14],
+				},
+			},
+			mockFullFeedError: nil,
+			expectMessage:     "Today is a good day with an average price of 10 cents per kilowatt-hour. The current price is 2 cents per kilowatt-hour. The next cheap period starts at 10 AM with an average price of 11 cents per kilowatt-hour and will end at 11 AM. The next expensive period starts at 2 AM with an average price of 4 cents per kilowatt-hour and will end at 5 AM.",
+			expectEnd:         false,
+		},
+		{
+			name: "FULL (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "FULL",
+			},
+			mockFullFeed: price.DailyPriceInfo{
+				DayRating:        price.Good,
+				DayAverage:       0.1,
+				ThirtyDayAverage: 0.2,
+				Prices:           pricesToday,
+				ExpensivePeriods: [][]price.Price{
+					pricesToday[2:5], pricesToday[8:9],
+				},
+				CheapPeriods: [][]price.Price{
+					pricesToday[10:11], pricesToday[13:14],
+				},
+			},
+			mockFullFeedError: nil,
+			expectMessage:     "Hoy es un día bueno, con un precio medio de 10 céntimos por kilovatio-hora. El precio actual es 2 céntimos por kilovatio-hora. El próximo período barato comienza a las 10 AM con un precio medio de 11 céntimos por kilovatio-hora y terminara a las 11 AM. El próximo período caro comienza a las 2 AM con un precio promedio de 4 céntimos por kilovatio-hora y terminara a las 5 AM.",
+			expectEnd:         false,
+		},
+		{
+			name: "FULL - error",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 1, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "FULL",
+			},
+			mockFullFeed:      price.DailyPriceInfo{},
+			mockFullFeedError: errors.New("error"),
+			expectMessage:     "Sorry, there was an error. Please try again later.",
+			expectEnd:         false,
+		},
+		{
+			name: "TODAY (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TODAY",
+			},
+			mockDayRating:       price.Good,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.1,
+			mockDayAverageError: nil,
+			expectMessage:       "Today is a good day with an average price of 10 cents per kilowatt-hour.",
+			expectEnd:           false,
+		},
+		{
+			name: "TODAY (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TODAY",
+			},
+			mockDayRating:       price.Bad,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.2,
+			mockDayAverageError: nil,
+			expectMessage:       "Hoy es un día malo, con un precio medio de 20 céntimos por kilovatio-hora.",
+			expectEnd:           false,
+		},
+		{
+			name: "TODAY - error (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TODAY",
+			},
+			mockDayRating:       price.Good,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.1,
+			mockDayAverageError: errors.New("error"),
+			expectMessage:       "Sorry, there was an error. Please try again later.",
+			expectEnd:           false,
+		},
+		{
+			name: "TODAY - error (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TODAY",
+			},
+			mockDayRating:       price.Normal,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.1,
+			mockDayAverageError: errors.New("error"),
+			expectMessage:       "Lo siento, no pude obtener los datos. Por favor, inténtelo de nuevo más tarde.",
+			expectEnd:           false,
+		},
+		{
+			name: "TODAY_AVERAGE (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TODAY_AVERAGE",
+			},
+			mockDayRating:       price.Good,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.1,
+			mockDayAverageError: nil,
+			expectMessage:       "Today is a good day with an average price of 10 cents per kilowatt-hour.",
+			expectEnd:           false,
+		},
+		{
+			name: "TODAY_AVERAGE (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TODAY_AVERAGE",
+			},
+			mockDayRating:       price.Bad,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.2,
+			mockDayAverageError: nil,
+			expectMessage:       "Hoy es un día malo, con un precio medio de 20 céntimos por kilovatio-hora.",
+			expectEnd:           false,
+		},
+		{
+			name: "TODAY_AVERAGE - error (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TODAY_AVERAGE",
+			},
+			mockDayRating:       price.Good,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.1,
+			mockDayAverageError: errors.New("error"),
+			expectMessage:       "Sorry, there was an error. Please try again later.",
+			expectEnd:           false,
+		},
+		{
+			name: "TODAY_AVERAGE - error (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TODAY_AVERAGE",
+			},
+			mockDayRating:       price.Normal,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.1,
+			mockDayAverageError: errors.New("error"),
+			expectMessage:       "Lo siento, no pude obtener los datos. Por favor, inténtelo de nuevo más tarde.",
+			expectEnd:           false,
+		},
+		{
+			name: "TOMORROW (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TOMORROW",
+			},
+			mockDayRating:       price.Normal,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.1,
+			mockDayAverageError: nil,
+			expectMessage:       "Tomorrow is a normal day with an average price of 10 cents per kilowatt-hour.",
+			expectEnd:           false,
+		},
+		{
+			name: "TOMORROW (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TOMORROW",
+			},
+			mockDayRating:       price.Bad,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.2,
+			mockDayAverageError: nil,
+			expectMessage:       "Mañana es un día malo, con un precio promedio de 20 céntimos por kilovatio-hora.",
+			expectEnd:           false,
+		},
+		{
+			name: "TOMORROW - error (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TOMORROW",
+			},
+			mockDayRating:       price.Good,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.1,
+			mockDayAverageError: errors.New("error"),
+			expectMessage:       "Sorry, there was an error. Please try again later.",
+			expectEnd:           false,
+		},
+		{
+			name: "TOMORROW - error (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 3, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "TOMORROW",
+			},
+			mockDayRating:       price.Normal,
+			mockDayRatingError:  nil,
+			mockDayAverage:      0.1,
+			mockDayAverageError: errors.New("error"),
+			expectMessage:       "Lo siento, no pude obtener los datos. Por favor, inténtelo de nuevo más tarde.",
+			expectEnd:           false,
+		},
+		{
+			name: "NEXT_CHEAP (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "NEXT_CHEAP",
+			},
+			mockGetCheapPeriods: [][]price.Price{
+				pricesToday[10:11], pricesToday[13:14],
+			},
+			mockGetCheapError: nil,
+			expectMessage:     "You are currently in a cheap period that started at 10 AM with an average price of 11 cents per kilowatt-hour and will end at 11 AM.",
+			expectEnd:         false,
+		},
+		{
+			name: "NEXT_CHEAP (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "NEXT_CHEAP",
+			},
+			mockGetCheapPeriods: [][]price.Price{
+				pricesToday[10:11], pricesToday[12:15],
+			},
+			mockGetCheapError: nil,
+			expectMessage:     "Actualmente se encuentra en un período barato que comenzó a las 10 AM con un precio promedio de 11 céntimos por kilovatio-hora y terminara a las 11 AM.",
+			expectEnd:         false,
+		},
+		{
+			name: "NEXT_CHEAP - error (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "NEXT_CHEAP",
+			},
+			mockGetCheapPeriods: [][]price.Price{
+				pricesToday[10:11], pricesToday[13:14],
+			},
+			mockGetCheapError: errors.New("error"),
+			expectMessage:     "Sorry, there was an error. Please try again later.",
+			expectEnd:         false,
+		},
+		{
+			name: "NEXT_CHEAP - error (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "NEXT_CHEAP",
+			},
+			mockGetCheapPeriods: nil,
+			mockGetCheapError:   errors.New("error"),
+			expectMessage:       "Lo siento, no pude obtener los datos. Por favor, inténtelo de nuevo más tarde.",
+			expectEnd:           false,
+		},
+		{
+			name: "NEXT_EXPENSIVE (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "NEXT_EXPENSIVE",
+			},
+			mockGetExpensive: [][]price.Price{
+				pricesToday[2:5], pricesToday[8:9],
+			},
+			mockGetExpensiveErr: nil,
+			expectMessage:       "The expensive periods for today have already passed.",
+			expectEnd:           false,
+		},
+		{
+			name: "NEXT_EXPENSIVE (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "NEXT_EXPENSIVE",
+			},
+			mockGetExpensive: [][]price.Price{
+				pricesToday[2:5], pricesToday[8:9],
+			},
+			mockGetExpensiveErr: nil,
+			expectMessage:       "Los períodos caros de hoy ya han pasado.",
+			expectEnd:           false,
+		},
+		{
+			name: "NEXT_EXPENSIVE - error (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "NEXT_EXPENSIVE",
+			},
+			mockGetExpensive: [][]price.Price{
+				pricesToday[2:5], pricesToday[8:9],
+			},
+			mockGetExpensiveErr: errors.New("error"),
+			expectMessage:       "Sorry, there was an error. Please try again later.",
+			expectEnd:           false,
+		},
+		{
+			name: "NEXT_EXPENSIVE - error (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "NEXT_EXPENSIVE",
+			},
+			mockGetExpensive: [][]price.Price{
+				pricesToday[2:5], pricesToday[8:9],
+			},
+			mockGetExpensiveErr: errors.New("error"),
+			expectMessage:       "Lo siento, no pude obtener los datos. Por favor, inténtelo de nuevo más tarde.",
+			expectEnd:           false,
+		},
+		{
+			name: "CURRENT_PRICE (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "CURRENT_PRICE",
+			},
+			mockGetPrice:    pricesToday[10],
+			mockGetPriceErr: nil,
+			expectMessage:   "The current price is 11 cents per kilowatt-hour.",
+			expectEnd:       false,
+		},
+		{
+			name: "CURRENT_PRICE (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "CURRENT_PRICE",
+			},
+			mockGetPrice:    pricesToday[9],
+			mockGetPriceErr: nil,
+			expectMessage:   "El precio actual es 10 céntimos por kilovatio-hora.",
+			expectEnd:       false,
+		},
+		{
+			name: "CURRENT_PRICE - error (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "CURRENT_PRICE",
+			},
+			mockGetPrice:    pricesToday[10],
+			mockGetPriceErr: errors.New("error"),
+			expectMessage:   "Sorry, there was an error. Please try again later.",
+			expectEnd:       false,
+		},
+		{
+			name: "CURRENT_PRICE - error (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "CURRENT_PRICE",
+			},
+			mockGetPrice:    pricesToday[9],
+			mockGetPriceErr: errors.New("error"),
+			expectMessage:   "Lo siento, no pude obtener los datos. Por favor, inténtelo de nuevo más tarde.",
+			expectEnd:       false,
+		},
+		{
+			name: "THIRTY_DAY_AVERAGE (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "THIRTY_DAY_AVERAGE",
+			},
+			mockThirtyDayAvg: 0.1,
+			mockThirtyDayErr: nil,
+			expectMessage:    "The average price for the last 30 days is 10 cents per kilowatt-hour.",
+			expectEnd:        false,
+		},
+		{
+			name: "THIRTY_DAY_AVERAGE (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "THIRTY_DAY_AVERAGE",
+			},
+			mockThirtyDayAvg: 0.2,
+			mockThirtyDayErr: nil,
+			expectMessage:    "El precio promedio de los últimos 30 días es 20 céntimos por kilovatio-hora.",
+			expectEnd:        false,
+		},
+		{
+			name: "THIRTY_DAY_AVERAGE - error (English)",
+			lang: language.English,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "THIRTY_DAY_AVERAGE",
+			},
+			mockThirtyDayAvg: 0.1,
+			mockThirtyDayErr: errors.New("error"),
+			expectMessage:    "Sorry, there was an error. Please try again later.",
+			expectEnd:        false,
+		},
+		{
+			name: "THIRTY_DAY_AVERAGE - error (Spanish)",
+			lang: language.Spanish,
+			t:    time.Date(2023, 1, 1, 10, 0, 0, 0, madridLocation),
+			intent: AlexaIntent{
+				Name: "THIRTY_DAY_AVERAGE",
+			},
+			mockThirtyDayAvg: 0.2,
+			mockThirtyDayErr: errors.New("error"),
+			expectMessage:    "Lo siento, no pude obtener los datos. Por favor, inténtelo de nuevo más tarde.",
+			expectEnd:        false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockPriceService := &testdata.MockPriceService{
+				MockGetDailyInfoResult:        &[]price.DailyPriceInfo{tc.mockFullFeed},
+				MockGetDailyInfoError:         &[]error{tc.mockFullFeedError},
+				MockGetDayRatingResult:        &[]price.DayRating{tc.mockDayRating},
+				MockGetDayRatingError:         &[]error{tc.mockDayRatingError},
+				MockGetDayAverageResult:       &[]float64{tc.mockDayAverage},
+				MockGetDayAverageError:        &[]error{tc.mockDayAverageError},
+				MockGetCheapPeriodsResult:     &[][][]price.Price{tc.mockGetCheapPeriods},
+				MockGetCheapPeriodsError:      &[]error{tc.mockGetCheapError},
+				MockGetExpensivePeriodsResult: &[][][]price.Price{tc.mockGetExpensive},
+				MockGetExpensivePeriodsError:  &[]error{tc.mockGetExpensiveErr},
+				MockGetPriceResult:            &[]price.Price{tc.mockGetPrice},
+				MockGetPriceError:             &[]error{tc.mockGetPriceErr},
+				MockGetThirtyDayAverageResult: &[]float64{tc.mockThirtyDayAvg},
+				MockGetThirtyDayAverageError:  &[]error{tc.mockThirtyDayErr},
+			}
+
+			service := &Service{
+				PriceService: mockPriceService,
+			}
+
+			res := service.ProcessAlexaSkillRequest(ctx, tc.intent, tc.t, tc.lang)
+			if res.Response.OutputSpeech.Text != tc.expectMessage {
+				t.Errorf("expected '%s' but got '%s'", tc.expectMessage, res.Response.OutputSpeech.Text)
+			}
+			if res.Response.ShouldEndSession != tc.expectEnd {
+				t.Errorf("expected '%v' but got '%v'", tc.expectEnd, res.Response.ShouldEndSession)
+			}
+		})
+	}
+}

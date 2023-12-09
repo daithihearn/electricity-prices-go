@@ -9,9 +9,9 @@ import (
 )
 
 type Syncer struct {
-	PriceService    price.PriceService
-	PrimaryClient   price.PriceClient
-	SecondaryClient price.PriceClient
+	PriceService    price.Service
+	PrimaryClient   price.Client
+	SecondaryClient price.Client
 }
 
 // Sync syncs the prices from the API to the database
