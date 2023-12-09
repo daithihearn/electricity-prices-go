@@ -6,3 +6,5 @@ build/
 
 coverage*
 profile.out
+
+coverage-full.out

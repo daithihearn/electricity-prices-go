@@ -5,7 +5,8 @@ docs: #@ Generate docs
 	swag init -g cmd/api/main.go
 .PHONY:docs
 test: fmt vet #@ Run tests
-	go test -coverprofile=coverage.out ./...
+	go test -coverprofile=coverage-full.out ./...
+	grep -v "_mocks.go" coverage-full.out > coverage.out
 	go tool cover -html=coverage.out -o coverage.html
 .PHONY:test
 fmt: #@ Format the code
