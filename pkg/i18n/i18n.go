@@ -17,30 +17,44 @@ var translationsFS embed.FS
 
 type Translations map[string]string
 
-func loadTranslations(lang language.Tag, filename string) {
+type File struct {
+	Filename string
+	Lang     language.Tag
+}
+
+func loadTranslations(file File) error {
 	var translations Translations
 
 	// Reading the file from the embedded filesystem
-	data, err := translationsFS.ReadFile(filename)
+	data, err := translationsFS.ReadFile(file.Filename)
 	if err != nil {
-		log.Fatalf("Failed to load translations for %s: %v", lang, err)
+		return err
 	}
 
 	// Decoding the TOML data
 	if _, err := toml.Decode(string(data), &translations); err != nil {
-		log.Fatalf("Failed to decode translations for %s: %v", lang, err)
+		return err
 	}
 
 	for key, value := range translations {
-		err := message.SetString(lang, key, value)
+		err := message.SetString(file.Lang, key, value)
 		if err != nil {
-			return
+			return err
 		}
 	}
+
+	return nil
 }
 
-func InitialiseTranslations() {
+func InitialiseTranslations(files []File) error {
 	log.Println("Loading translations")
-	loadTranslations(language.English, "en.toml")
-	loadTranslations(language.Spanish, "es.toml")
+
+	for _, file := range files {
+		err := loadTranslations(file)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

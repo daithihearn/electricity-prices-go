@@ -28,10 +28,22 @@ var period4 []price.Price
 
 func TestMain(m *testing.M) {
 
-	i18n.InitialiseTranslations()
+	err := i18n.InitialiseTranslations(
+		[]i18n.File{
+			{
+				Filename: "en.toml",
+				Lang:     language.English,
+			},
+			{
+				Filename: "es.toml",
+				Lang:     language.Spanish,
+			},
+		})
+	if err != nil {
+		log.Fatal(err)
+	}
 	alexaService = Service{}
 
-	var err error
 	madridLocation, err = time.LoadLocation("Europe/Madrid")
 	if err != nil {
 		log.Fatal(err)
