@@ -1,5 +1,5 @@
 codecov:
   ignore:
     - "*/**/*_mocks.go"
-    - "*/**/*handler.go"
+    - "*/**/*handlers.go"
     - "*/**/*collection.go"
