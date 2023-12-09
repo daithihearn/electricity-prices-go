@@ -6,9 +6,7 @@ docs: #@ Generate docs
 .PHONY:docs
 test: fmt vet #@ Run tests
 	go test -coverprofile=coverage.out ./...
-	grep -v "_mocks.go" coverage.out > filtered_coverage.out
-	go tool cover -html=filtered_coverage.out -o coverage.html
-
+	go tool cover -html=coverage.out -o coverage.html
 .PHONY:test
 fmt: #@ Format the code
 	go fmt ./...
