@@ -1,5 +1,5 @@
 // @title Electricity Prices API
-// @version 2.1.18
+// @version 2.1.19
 // @description Returns PVPC electricity prices for a given range
 // @BasePath /api/v1
 package main
@@ -90,7 +90,7 @@ func main() {
 		cancel()
 		log.Fatal("Failed to get collection: ", err)
 	}
-	priceCollection := price.PriceCollection{Col: col}
+	priceCollection := price.ColReceiver{Col: col}
 	priceService := price.Receiver{Collection: priceCollection}
 	priceHandler := price.Handler{PriceService: &priceService}
 	alexaService := alexa.Service{PriceService: &priceService}

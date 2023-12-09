@@ -3,7 +3,6 @@ package sync
 import (
 	"context"
 	"electricity-prices/pkg/price"
-	"electricity-prices/pkg/price/testdata"
 	"fmt"
 	"testing"
 	"time"
@@ -23,7 +22,7 @@ func TestSync(t *testing.T) {
 		secondaryGetPricesSynced *[]bool
 		secondaryGetPricesErr    *[]error
 		mockSavePricesErr        *[]error
-		savePricesCount          *testdata.CallCounter
+		savePricesCount          *price.CallCounter
 		expectError              bool
 		expectSynced             bool
 	}{
@@ -51,7 +50,7 @@ func TestSync(t *testing.T) {
 			secondaryGetPricesResp:   &[][]price.Price{},
 			secondaryGetPricesSynced: &[]bool{true},
 			secondaryGetPricesErr:    &[]error{},
-			savePricesCount: &testdata.CallCounter{
+			savePricesCount: &price.CallCounter{
 				Count: 1,
 			},
 			mockSavePricesErr: &[]error{nil},
@@ -81,7 +80,7 @@ func TestSync(t *testing.T) {
 			},
 			secondaryGetPricesSynced: &[]bool{false, true},
 			secondaryGetPricesErr:    &[]error{nil},
-			savePricesCount: &testdata.CallCounter{
+			savePricesCount: &price.CallCounter{
 				Count: 1,
 			},
 			mockSavePricesErr: &[]error{nil},
@@ -112,7 +111,7 @@ func TestSync(t *testing.T) {
 			},
 			secondaryGetPricesSynced: &[]bool{false, true},
 			secondaryGetPricesErr:    &[]error{nil},
-			savePricesCount: &testdata.CallCounter{
+			savePricesCount: &price.CallCounter{
 				Count: 1,
 			},
 			mockSavePricesErr: &[]error{nil},
@@ -136,7 +135,7 @@ func TestSync(t *testing.T) {
 			secondaryGetPricesResp:   &[][]price.Price{},
 			secondaryGetPricesSynced: &[]bool{},
 			secondaryGetPricesErr:    &[]error{fmt.Errorf("error")},
-			savePricesCount: &testdata.CallCounter{
+			savePricesCount: &price.CallCounter{
 				Count: 0,
 			},
 			mockSavePricesErr: &[]error{nil},
@@ -155,7 +154,7 @@ func TestSync(t *testing.T) {
 			secondaryGetPricesResp:   &[][]price.Price{},
 			secondaryGetPricesSynced: &[]bool{},
 			secondaryGetPricesErr:    &[]error{},
-			savePricesCount: &testdata.CallCounter{
+			savePricesCount: &price.CallCounter{
 				Count: 0,
 			},
 			mockSavePricesErr: &[]error{nil},
@@ -179,7 +178,7 @@ func TestSync(t *testing.T) {
 			secondaryGetPricesResp:   &[][]price.Price{},
 			secondaryGetPricesSynced: &[]bool{},
 			secondaryGetPricesErr:    &[]error{},
-			savePricesCount: &testdata.CallCounter{
+			savePricesCount: &price.CallCounter{
 				Count: 0,
 			},
 			mockSavePricesErr: &[]error{nil},
@@ -189,7 +188,7 @@ func TestSync(t *testing.T) {
 	}
 	for _, test := range tests {
 		// Create a mock Service
-		mockPriceService := &testdata.MockPriceService{
+		mockPriceService := &price.MockPriceService{
 			MockGetLatestPriceResult:   test.getLatestPriceResp,
 			MockGetLatestPriceNoResult: test.getLatestPriceNoResult,
 			MockGetLatestPriceError:    test.getLatestPriceErr,
@@ -198,12 +197,12 @@ func TestSync(t *testing.T) {
 		}
 
 		// Mock primary and secondary clients
-		mockPrimaryClient := &testdata.MockPriceClient{
+		mockPrimaryClient := &price.MockPriceClient{
 			MockGetPricesResult: test.primaryGetPricesResp,
 			MockGetPricesSynced: test.primaryGetPricesSynced,
 			MockGetPricesError:  test.primaryGetPricesErr,
 		}
-		mockSecondaryClient := &testdata.MockPriceClient{
+		mockSecondaryClient := &price.MockPriceClient{
 			MockGetPricesResult: test.secondaryGetPricesResp,
 			MockGetPricesSynced: test.secondaryGetPricesSynced,
 			MockGetPricesError:  test.secondaryGetPricesErr,

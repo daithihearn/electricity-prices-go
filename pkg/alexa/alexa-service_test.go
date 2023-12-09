@@ -4,7 +4,6 @@ import (
 	"context"
 	"electricity-prices/pkg/i18n"
 	"electricity-prices/pkg/price"
-	"electricity-prices/pkg/price/testdata"
 	"errors"
 	"golang.org/x/text/language"
 	"log"
@@ -936,7 +935,7 @@ func TestGetFullFeed(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			mockPriceService := &testdata.MockPriceService{
+			mockPriceService := &price.MockPriceService{
 				MockGetDailyInfoResult: &[]price.DailyPriceInfo{tc.mockResultToday, tc.mockResultTmrw},
 				MockGetDailyInfoError:  &[]error{tc.mockErrorToday, tc.mockErrorTmrw},
 			}
@@ -1525,7 +1524,7 @@ func TestProcessAlexaSkillRequest(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			mockPriceService := &testdata.MockPriceService{
+			mockPriceService := &price.MockPriceService{
 				MockGetDailyInfoResult:        &[]price.DailyPriceInfo{tc.mockFullFeed},
 				MockGetDailyInfoError:         &[]error{tc.mockFullFeedError},
 				MockGetDayRatingResult:        &[]price.DayRating{tc.mockDayRating},
