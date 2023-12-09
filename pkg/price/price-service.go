@@ -27,7 +27,7 @@ type Service interface {
 }
 
 type Receiver struct {
-	Collection db.Collection[Price]
+	Collection Collection
 }
 
 func (r *Receiver) GetPrice(ctx context.Context, t time.Time) (Price, error) {
@@ -246,86 +246,12 @@ func (r *Receiver) GetExpensivePeriods(ctx context.Context, t time.Time) ([][]Pr
 }
 
 func (r *Receiver) GetThirtyDayAverage(ctx context.Context, t time.Time) (float64, error) {
-	start, end := date.ParseStartAndEndTimes(t, 30)
-
-	// Define the aggregation pipeline
-	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{
-			"dateTime": bson.M{
-				"$gte": start,
-				"$lte": end,
-			},
-		}}},
-		{{Key: "$group", Value: bson.M{
-			"_id": nil,
-			"averagePrice": bson.M{
-				"$avg": "$price",
-			},
-		}}},
-		{{Key: "$project", Value: bson.M{
-			"_id":          0,
-			"averagePrice": 1,
-		}}},
-	}
-
-	cursor, err := r.Collection.Aggregate(ctx, pipeline)
-	if err != nil {
-		return 0, err
-	}
-
-	defer func(cursor *mongo.Cursor, ctx context.Context) {
-		err := cursor.Close(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(cursor, ctx)
-
-	var result bson.M
-	if cursor.Next(ctx) {
-		if err = cursor.Decode(&result); err != nil {
-			return 0, err
-		}
-		if avgPrice, ok := result["averagePrice"].(float64); ok {
-			return avgPrice, nil
-		} else {
-			return 0, fmt.Errorf("failed to convert average price to float64")
-		}
-	}
-
-	return 0, fmt.Errorf("no results found")
+	return r.Collection.GetThirtyDayAverage(ctx, t)
 }
 
 // GetLatestPrice returns the latest price from the database
 // It returns a boolean indicating if no price was found
 // and an error if there was one
 func (r *Receiver) GetLatestPrice(ctx context.Context) (Price, bool, error) {
-	// Define the aggregation pipeline
-	pipeline := mongo.Pipeline{
-		{{Key: "$sort", Value: bson.M{
-			"dateTime": -1,
-		}}},
-		{{Key: "$limit", Value: 1}},
-	}
-
-	cursor, err := r.Collection.Aggregate(ctx, pipeline)
-	if err != nil {
-		return Price{}, false, err
-	}
-
-	defer func(cursor *mongo.Cursor, ctx context.Context) {
-		err := cursor.Close(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(cursor, ctx)
-
-	var result Price
-	if cursor.Next(ctx) {
-		if err = cursor.Decode(&result); err != nil {
-			return Price{}, false, err
-		}
-		return result, false, nil
-	}
-
-	return Price{}, true, nil
+	return r.Collection.GetLatestPrice(ctx)
 }

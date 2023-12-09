@@ -2,17 +2,28 @@ package price
 
 import (
 	"context"
+	"electricity-prices/pkg/date"
+	"electricity-prices/pkg/db"
+	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
+	"time"
 )
 
-type PriceCollection struct {
+type Collection interface {
+	db.Collection[Price]
+	GetThirtyDayAverage(ctx context.Context, t time.Time) (float64, error)
+	GetLatestPrice(ctx context.Context) (Price, bool, error)
+}
+
+type ColReceiver struct {
 	Col *mongo.Collection
 }
 
-func (c PriceCollection) FindOne(ctx context.Context, filter interface{}) (Price, error) {
+func (r ColReceiver) FindOne(ctx context.Context, filter interface{}) (Price, error) {
 	var p Price
-	err := c.Col.FindOne(ctx, filter).Decode(&p)
+	err := r.Col.FindOne(ctx, filter).Decode(&p)
 
 	if err != nil {
 		return Price{}, err
@@ -21,8 +32,8 @@ func (c PriceCollection) FindOne(ctx context.Context, filter interface{}) (Price
 	return p, err
 }
 
-func (c PriceCollection) Find(ctx context.Context, filter interface{}) ([]Price, error) {
-	cur, err := c.Col.Find(ctx, filter)
+func (r ColReceiver) Find(ctx context.Context, filter interface{}) ([]Price, error) {
+	cur, err := r.Col.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -53,13 +64,13 @@ func (c PriceCollection) Find(ctx context.Context, filter interface{}) ([]Price,
 	return prices, nil
 }
 
-func (c PriceCollection) InsertMany(ctx context.Context, documents []Price) error {
+func (r ColReceiver) InsertMany(ctx context.Context, documents []Price) error {
 	var documentsInterface []interface{}
 	for _, doc := range documents {
 		documentsInterface = append(documentsInterface, doc)
 	}
 
-	_, err := c.Col.InsertMany(ctx, documentsInterface)
+	_, err := r.Col.InsertMany(ctx, documentsInterface)
 	if err != nil {
 		return err
 	}
@@ -67,11 +78,93 @@ func (c PriceCollection) InsertMany(ctx context.Context, documents []Price) erro
 	return nil
 }
 
-func (c PriceCollection) Aggregate(ctx context.Context, pipeline interface{}) (*mongo.Cursor, error) {
-	cursor, err := c.Col.Aggregate(ctx, pipeline)
+func (r ColReceiver) Aggregate(ctx context.Context, pipeline interface{}) (*mongo.Cursor, error) {
+	cursor, err := r.Col.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
 
 	return cursor, nil
+}
+
+func (r ColReceiver) GetThirtyDayAverage(ctx context.Context, t time.Time) (float64, error) {
+	start, end := date.ParseStartAndEndTimes(t, 30)
+
+	// Define the aggregation pipeline
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{
+			"dateTime": bson.M{
+				"$gte": start,
+				"$lte": end,
+			},
+		}}},
+		{{Key: "$group", Value: bson.M{
+			"_id": nil,
+			"averagePrice": bson.M{
+				"$avg": "$price",
+			},
+		}}},
+		{{Key: "$project", Value: bson.M{
+			"_id":          0,
+			"averagePrice": 1,
+		}}},
+	}
+
+	cursor, err := r.Aggregate(ctx, pipeline)
+	if err != nil {
+		return 0, err
+	}
+
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(cursor, ctx)
+
+	var result bson.M
+	if cursor.Next(ctx) {
+		if err = cursor.Decode(&result); err != nil {
+			return 0, err
+		}
+		if avgPrice, ok := result["averagePrice"].(float64); ok {
+			return avgPrice, nil
+		} else {
+			return 0, fmt.Errorf("failed to convert average price to float64")
+		}
+	}
+
+	return 0, fmt.Errorf("no results found")
+}
+
+func (r ColReceiver) GetLatestPrice(ctx context.Context) (Price, bool, error) {
+	// Define the aggregation pipeline
+	pipeline := mongo.Pipeline{
+		{{Key: "$sort", Value: bson.M{
+			"dateTime": -1,
+		}}},
+		{{Key: "$limit", Value: 1}},
+	}
+
+	cursor, err := r.Aggregate(ctx, pipeline)
+	if err != nil {
+		return Price{}, false, err
+	}
+
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(cursor, ctx)
+
+	var result Price
+	if cursor.Next(ctx) {
+		if err = cursor.Decode(&result); err != nil {
+			return Price{}, false, err
+		}
+		return result, false, nil
+	}
+
+	return Price{}, true, nil
 }

@@ -1,12 +1,10 @@
-package testdata
+package price
 
 import (
 	"context"
-	"electricity-prices/pkg/price"
 	"time"
 )
 
-// Define a struct with a counter field
 type CallCounter struct {
 	Count int
 }
@@ -14,41 +12,41 @@ type CallCounter struct {
 // A mock implementation of Service
 
 type MockPriceService struct {
-	MockGetLatestPriceResult      *[]price.Price
+	MockGetLatestPriceResult      *[]Price
 	MockGetLatestPriceNoResult    *[]bool
 	MockGetLatestPriceError       *[]error
-	MockGetPriceResult            *[]price.Price
+	MockGetPriceResult            *[]Price
 	MockGetPriceError             *[]error
-	MockGetPricesResult           *[][]price.Price
+	MockGetPricesResult           *[][]Price
 	MockGetPricesError            *[]error
 	MockSavePricesCount           *CallCounter
 	MockSavePricesError           *[]error
-	MockGetDailyPricesResult      *[][]price.Price
+	MockGetDailyPricesResult      *[][]Price
 	MockGetDailyPricesError       *[]error
-	MockGetDailyAveragesResult    *[][]price.DailyAverage
+	MockGetDailyAveragesResult    *[][]DailyAverage
 	MockGetDailyAveragesError     *[]error
-	MockGetDailyInfoResult        *[]price.DailyPriceInfo
+	MockGetDailyInfoResult        *[]DailyPriceInfo
 	MockGetDailyInfoError         *[]error
-	MockGetDayRatingResult        *[]price.DayRating
+	MockGetDayRatingResult        *[]DayRating
 	MockGetDayRatingError         *[]error
 	MockGetDayAverageResult       *[]float64
 	MockGetDayAverageError        *[]error
-	MockGetCheapPeriodsResult     *[][][]price.Price
+	MockGetCheapPeriodsResult     *[][][]Price
 	MockGetCheapPeriodsError      *[]error
-	MockGetExpensivePeriodsResult *[][][]price.Price
+	MockGetExpensivePeriodsResult *[][][]Price
 	MockGetExpensivePeriodsError  *[]error
 	MockGetThirtyDayAverageResult *[]float64
 	MockGetThirtyDayAverageError  *[]error
 }
 
-func (m *MockPriceService) GetLatestPrice(ctx context.Context) (price.Price, bool, error) {
+func (m *MockPriceService) GetLatestPrice(ctx context.Context) (Price, bool, error) {
 	// Get the first element of the result array and remove it from the array, return nil if the array is empty
-	var result price.Price
+	var result Price
 	if len(*m.MockGetLatestPriceResult) > 0 {
 		result = (*m.MockGetLatestPriceResult)[0]
 		*m.MockGetLatestPriceResult = (*m.MockGetLatestPriceResult)[1:]
 	} else {
-		result = price.Price{}
+		result = Price{}
 	}
 
 	var noResult bool
@@ -71,14 +69,14 @@ func (m *MockPriceService) GetLatestPrice(ctx context.Context) (price.Price, boo
 	return result, noResult, err
 }
 
-func (m *MockPriceService) GetPrice(ctx context.Context, t time.Time) (price.Price, error) {
+func (m *MockPriceService) GetPrice(ctx context.Context, t time.Time) (Price, error) {
 	// Get the first element of the result array and remove it from the array, return nil if the array is empty
-	var result price.Price
+	var result Price
 	if len(*m.MockGetPriceResult) > 0 {
 		result = (*m.MockGetPriceResult)[0]
 		*m.MockGetPriceResult = (*m.MockGetPriceResult)[1:]
 	} else {
-		result = price.Price{}
+		result = Price{}
 	}
 
 	// Get the first element of the error array and remove it from the array, return nil if the array is empty
@@ -93,9 +91,9 @@ func (m *MockPriceService) GetPrice(ctx context.Context, t time.Time) (price.Pri
 	return result, err
 }
 
-func (m *MockPriceService) GetPrices(ctx context.Context, start time.Time, end time.Time) ([]price.Price, error) {
+func (m *MockPriceService) GetPrices(ctx context.Context, start time.Time, end time.Time) ([]Price, error) {
 	// Get the first element of the result array and remove it from the array, return nil if the array is empty
-	var result []price.Price
+	var result []Price
 	if len(*m.MockGetPricesResult) > 0 {
 		result = (*m.MockGetPricesResult)[0]
 		*m.MockGetPricesResult = (*m.MockGetPricesResult)[1:]
@@ -115,7 +113,7 @@ func (m *MockPriceService) GetPrices(ctx context.Context, start time.Time, end t
 	return result, err
 }
 
-func (m *MockPriceService) SavePrices(ctx context.Context, prices []price.Price) error {
+func (m *MockPriceService) SavePrices(ctx context.Context, prices []Price) error {
 	// Decrement the counter
 	m.MockSavePricesCount.Count--
 
@@ -131,9 +129,9 @@ func (m *MockPriceService) SavePrices(ctx context.Context, prices []price.Price)
 	return err
 }
 
-func (m *MockPriceService) GetDailyPrices(ctx context.Context, t time.Time) ([]price.Price, error) {
+func (m *MockPriceService) GetDailyPrices(ctx context.Context, t time.Time) ([]Price, error) {
 	// Get the first element of the result array and remove it from the array, return nil if the array is empty
-	var result []price.Price
+	var result []Price
 	if len(*m.MockGetDailyPricesResult) > 0 {
 		result = (*m.MockGetDailyPricesResult)[0]
 		*m.MockGetDailyPricesResult = (*m.MockGetDailyPricesResult)[1:]
@@ -153,9 +151,9 @@ func (m *MockPriceService) GetDailyPrices(ctx context.Context, t time.Time) ([]p
 	return result, err
 }
 
-func (m *MockPriceService) GetDailyAverages(ctx context.Context, t time.Time, numberOfDays int) ([]price.DailyAverage, error) {
+func (m *MockPriceService) GetDailyAverages(ctx context.Context, t time.Time, numberOfDays int) ([]DailyAverage, error) {
 	// Get the first element of the result array and remove it from the array, return nil if the array is empty
-	var result []price.DailyAverage
+	var result []DailyAverage
 	if len(*m.MockGetDailyAveragesResult) > 0 {
 		result = (*m.MockGetDailyAveragesResult)[0]
 		*m.MockGetDailyAveragesResult = (*m.MockGetDailyAveragesResult)[1:]
@@ -175,14 +173,14 @@ func (m *MockPriceService) GetDailyAverages(ctx context.Context, t time.Time, nu
 	return result, err
 }
 
-func (m *MockPriceService) GetDailyInfo(ctx context.Context, t time.Time) (price.DailyPriceInfo, error) {
+func (m *MockPriceService) GetDailyInfo(ctx context.Context, t time.Time) (DailyPriceInfo, error) {
 	// Get the first element of the result array and remove it from the array, return nil if the array is empty
-	var result price.DailyPriceInfo
+	var result DailyPriceInfo
 	if len(*m.MockGetDailyInfoResult) > 0 {
 		result = (*m.MockGetDailyInfoResult)[0]
 		*m.MockGetDailyInfoResult = (*m.MockGetDailyInfoResult)[1:]
 	} else {
-		result = price.DailyPriceInfo{}
+		result = DailyPriceInfo{}
 	}
 
 	// Get the first element of the error array and remove it from the array, return nil if the array is empty
@@ -197,14 +195,14 @@ func (m *MockPriceService) GetDailyInfo(ctx context.Context, t time.Time) (price
 	return result, err
 }
 
-func (m *MockPriceService) GetDayRating(ctx context.Context, t time.Time) (price.DayRating, error) {
+func (m *MockPriceService) GetDayRating(ctx context.Context, t time.Time) (DayRating, error) {
 	// Get the first element of the result array and remove it from the array, return nil if the array is empty
-	var result price.DayRating
+	var result DayRating
 	if len(*m.MockGetDayRatingResult) > 0 {
 		result = (*m.MockGetDayRatingResult)[0]
 		*m.MockGetDayRatingResult = (*m.MockGetDayRatingResult)[1:]
 	} else {
-		result = price.Nil
+		result = Nil
 	}
 
 	// Get the first element of the error array and remove it from the array, return nil if the array is empty
@@ -241,9 +239,9 @@ func (m *MockPriceService) GetDayAverage(ctx context.Context, t time.Time) (floa
 	return result, err
 }
 
-func (m *MockPriceService) GetCheapPeriods(ctx context.Context, t time.Time) ([][]price.Price, error) {
+func (m *MockPriceService) GetCheapPeriods(ctx context.Context, t time.Time) ([][]Price, error) {
 	// Get the first element of the result array and remove it from the array, return nil if the array is empty
-	var result [][]price.Price
+	var result [][]Price
 	if len(*m.MockGetCheapPeriodsResult) > 0 {
 		result = (*m.MockGetCheapPeriodsResult)[0]
 		*m.MockGetCheapPeriodsResult = (*m.MockGetCheapPeriodsResult)[1:]
@@ -263,9 +261,9 @@ func (m *MockPriceService) GetCheapPeriods(ctx context.Context, t time.Time) ([]
 	return result, err
 }
 
-func (m *MockPriceService) GetExpensivePeriods(ctx context.Context, t time.Time) ([][]price.Price, error) {
+func (m *MockPriceService) GetExpensivePeriods(ctx context.Context, t time.Time) ([][]Price, error) {
 	// Get the first element of the result array and remove it from the array, return nil if the array is empty
-	var result [][]price.Price
+	var result [][]Price
 	if len(*m.MockGetExpensivePeriodsResult) > 0 {
 		result = (*m.MockGetExpensivePeriodsResult)[0]
 		*m.MockGetExpensivePeriodsResult = (*m.MockGetExpensivePeriodsResult)[1:]
@@ -310,14 +308,14 @@ func (m *MockPriceService) GetThirtyDayAverage(ctx context.Context, t time.Time)
 // A mock implementation of Client
 
 type MockPriceClient struct {
-	MockGetPricesResult *[][]price.Price
+	MockGetPricesResult *[][]Price
 	MockGetPricesSynced *[]bool
 	MockGetPricesError  *[]error
 }
 
-func (m *MockPriceClient) GetPrices(t time.Time) ([]price.Price, bool, error) {
+func (m *MockPriceClient) GetPrices(t time.Time) ([]Price, bool, error) {
 	// Get the first element of the result array and remove it from the array, return nil if the array is empty
-	var result []price.Price
+	var result []Price
 	if len(*m.MockGetPricesResult) > 0 {
 		result = (*m.MockGetPricesResult)[0]
 		*m.MockGetPricesResult = (*m.MockGetPricesResult)[1:]
