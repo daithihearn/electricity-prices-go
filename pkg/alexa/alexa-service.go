@@ -24,10 +24,7 @@ func (s *Service) GetFullFeed(ctx context.Context, t time.Time, lang language.Ta
 	// Get the daily info for the given date
 	dailyInfo, err := s.PriceService.GetDailyInfo(ctx, t)
 
-	if err != nil {
-		return "", err
-	}
-	if len(dailyInfo.Prices) == 0 {
+	if err != nil || len(dailyInfo.Prices) == 0 {
 		return s.getTodayNoDataMessage(lang), nil
 	}
 	var messages []string
