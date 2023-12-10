@@ -122,9 +122,38 @@ func TestGetPrices(t *testing.T) {
 			expectingError:     true,
 		},
 		{
+			name:     "No values for specified archive - in future",
+			testDate: time.Now().AddDate(0, 0, 2),
+			mockResponse: &http.Response{StatusCode: 502, Body: testdata.NewMockReadCloser(
+				testutils.ReadJsonStringFromFile("testdata/no-data.json"))},
+			mockError:          nil,
+			expectedResultSize: 0,
+			expectSynced:       true,
+			expectingError:     false,
+		},
+		{
+			name:     "404 error - in future",
+			testDate: time.Now().AddDate(0, 0, 2),
+			mockResponse: &http.Response{StatusCode: 404, Body: testdata.NewMockReadCloser(
+				"not found")},
+			mockError:          nil,
+			expectedResultSize: 0,
+			expectSynced:       true,
+			expectingError:     false,
+		},
+		{
 			name:               "Invalid data returned",
 			testDate:           time.Date(2022, 10, 11, 0, 0, 0, 0, date.Location),
 			mockResponse:       &http.Response{StatusCode: 200, Body: testdata.NewMockReadCloser(`{"data": "invalid"}`)},
+			mockError:          nil,
+			expectedResultSize: 0,
+			expectSynced:       false,
+			expectingError:     true,
+		},
+		{
+			name:               "Invalid data returned - not json",
+			testDate:           time.Date(2022, 10, 11, 0, 0, 0, 0, date.Location),
+			mockResponse:       &http.Response{StatusCode: 200, Body: testdata.NewMockReadCloser("not json$")},
 			mockError:          nil,
 			expectedResultSize: 0,
 			expectSynced:       false,
