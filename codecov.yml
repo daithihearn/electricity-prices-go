@@ -3,3 +3,4 @@ codecov:
     - "*/**/*_mocks.go"
     - "*/**/*handlers.go"
     - "*/**/*collection.go"
+    - "*/**/alexa-validation-service.go"
