@@ -93,6 +93,26 @@ func TestGetPrices(t *testing.T) {
 			expectingError:     false,
 		},
 		{
+			name:     "Invlaid date format",
+			testDate: time.Date(2023, 11, 29, 0, 0, 0, 0, date.Location),
+			mockResponse: &http.Response{StatusCode: 200, Body: testdata.NewMockReadCloser(
+				testutils.ReadJsonStringFromFile("testdata/invalid-date.json"))},
+			mockError:          nil,
+			expectedResultSize: 0,
+			expectSynced:       false,
+			expectingError:     true,
+		},
+		{
+			name:     "Invalid PCB format",
+			testDate: time.Date(2023, 11, 29, 0, 0, 0, 0, date.Location),
+			mockResponse: &http.Response{StatusCode: 200, Body: testdata.NewMockReadCloser(
+				testutils.ReadJsonStringFromFile("testdata/invalid-pcb.json"))},
+			mockError:          nil,
+			expectedResultSize: 0,
+			expectSynced:       false,
+			expectingError:     true,
+		},
+		{
 			name:     "No values for specified archive - in future",
 			testDate: time.Now().AddDate(0, 0, 1),
 			mockResponse: &http.Response{StatusCode: 200, Body: testdata.NewMockReadCloser(
