@@ -60,7 +60,7 @@ Running without the `./sync` will run the API.
 You must configure CORs by setting an environment variable `CORS_ALLOWED_ORIGINS` to a comma separated list of origins. For example:
 
 ```bash
-CORS_ALLOWED_ORIGINS=http://localhost:3000,https://elec.daithiapp.com
+CORS_ALLOWED_ORIGINS=http://localhost:3000,https://preciosdelaelectricidad.es
 ```
 
 Please ensure there are no spaces in the list.
