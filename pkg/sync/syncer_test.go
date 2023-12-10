@@ -2,6 +2,7 @@ package sync
 
 import (
 	"context"
+	"electricity-prices/pkg/date"
 	"electricity-prices/pkg/price"
 	"fmt"
 	"testing"
@@ -180,6 +181,32 @@ func TestSync(t *testing.T) {
 			secondaryGetPricesErr:    &[]error{},
 			savePricesCount: &price.CallCounter{
 				Count: 0,
+			},
+			mockSavePricesErr: &[]error{nil},
+			expectError:       false,
+			expectSynced:      true,
+		},
+		{
+			name:                   "Last price no result",
+			endDate:                time.Date(2021, 6, 1, 0, 0, 0, 0, time.Local),
+			getLatestPriceResp:     &[]price.Price{},
+			getLatestPriceNoResult: &[]bool{true},
+			getLatestPriceErr:      &[]error{nil},
+			primaryGetPricesResp: &[][]price.Price{
+				{
+					{
+						DateTime: date.StartOfDay(time.Date(2021, 5, 31, 0, 0, 0, 0, time.Local)),
+						Price:    1.0,
+					},
+				},
+			},
+			primaryGetPricesSynced:   &[]bool{false, true},
+			primaryGetPricesErr:      &[]error{nil},
+			secondaryGetPricesResp:   &[][]price.Price{},
+			secondaryGetPricesSynced: &[]bool{true},
+			secondaryGetPricesErr:    &[]error{},
+			savePricesCount: &price.CallCounter{
+				Count: 1,
 			},
 			mockSavePricesErr: &[]error{nil},
 			expectError:       false,
