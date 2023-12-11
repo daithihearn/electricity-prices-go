@@ -90,7 +90,7 @@ func (s *Service) ProcessAlexaSkillRequest(ctx context.Context, intent AlexaInte
 		rating, err := s.PriceService.GetDayRating(ctx, tomorrow)
 		avg, err2 := s.PriceService.GetDayAverage(ctx, tomorrow)
 		if err != nil || err2 != nil {
-			msg = s.getUnknownError(lang)
+			msg = s.getTomorrowNoDataMessage(lang)
 		} else {
 			msg = s.getTomorrowRatingMessage(rating, avg, lang)
 		}

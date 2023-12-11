@@ -1297,7 +1297,7 @@ func TestProcessAlexaSkillRequest(t *testing.T) {
 			mockDayRatingError:  nil,
 			mockDayAverage:      0.1,
 			mockDayAverageError: errors.New("error"),
-			expectMessage:       "Sorry, there was an error. Please try again later.",
+			expectMessage:       "There is no data available yet for tomorrow. Please check back later. Prices are generally available by 8:30 PM.",
 			expectEnd:           false,
 		},
 		{
@@ -1311,7 +1311,7 @@ func TestProcessAlexaSkillRequest(t *testing.T) {
 			mockDayRatingError:  nil,
 			mockDayAverage:      0.1,
 			mockDayAverageError: errors.New("error"),
-			expectMessage:       "Lo siento, no pude obtener los datos. Por favor, inténtelo de nuevo más tarde.",
+			expectMessage:       "Aún no hay datos disponibles para mañana. Por favor, vuelva más tarde. Los precios están generalmente disponibles a las 8:30 PM.",
 			expectEnd:           false,
 		},
 		{
