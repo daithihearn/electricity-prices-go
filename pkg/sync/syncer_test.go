@@ -59,6 +59,37 @@ func TestSync(t *testing.T) {
 			expectSynced:      true,
 		},
 		{
+			name:    "Save failed",
+			endDate: time.Date(2023, 6, 1, 0, 0, 0, 0, time.Local),
+			getLatestPriceResp: &[]price.Price{
+				{
+					DateTime: time.Date(2021, 5, 31, 0, 0, 0, 0, time.Local),
+					Price:    1.0,
+				},
+			},
+			getLatestPriceNoResult: &[]bool{false},
+			getLatestPriceErr:      &[]error{nil},
+			primaryGetPricesResp: &[][]price.Price{
+				{
+					{
+						DateTime: time.Date(2021, 6, 1, 0, 0, 0, 0, time.Local),
+						Price:    1.0,
+					},
+				},
+			},
+			primaryGetPricesSynced:   &[]bool{false, true},
+			primaryGetPricesErr:      &[]error{nil},
+			secondaryGetPricesResp:   &[][]price.Price{},
+			secondaryGetPricesSynced: &[]bool{true},
+			secondaryGetPricesErr:    &[]error{},
+			savePricesCount: &price.CallCounter{
+				Count: 1,
+			},
+			mockSavePricesErr: &[]error{fmt.Errorf("error")},
+			expectError:       true,
+			expectSynced:      false,
+		},
+		{
 			name:    "Primary Client error, Secondary Client successful",
 			endDate: time.Date(2023, 6, 1, 0, 0, 0, 0, time.Local),
 			getLatestPriceResp: &[]price.Price{
@@ -136,6 +167,30 @@ func TestSync(t *testing.T) {
 			secondaryGetPricesResp:   &[][]price.Price{},
 			secondaryGetPricesSynced: &[]bool{},
 			secondaryGetPricesErr:    &[]error{fmt.Errorf("error")},
+			savePricesCount: &price.CallCounter{
+				Count: 0,
+			},
+			mockSavePricesErr: &[]error{nil},
+			expectError:       true,
+			expectSynced:      false,
+		},
+		{
+			name:    "Primary Client empty, Secondary Client empty",
+			endDate: time.Date(2023, 6, 1, 0, 0, 0, 0, time.Local),
+			getLatestPriceResp: &[]price.Price{
+				{
+					DateTime: time.Date(2021, 5, 31, 0, 0, 0, 0, time.Local),
+					Price:    1.0,
+				},
+			},
+			getLatestPriceNoResult:   &[]bool{false},
+			getLatestPriceErr:        &[]error{nil},
+			primaryGetPricesResp:     &[][]price.Price{},
+			primaryGetPricesSynced:   &[]bool{false},
+			primaryGetPricesErr:      &[]error{},
+			secondaryGetPricesResp:   &[][]price.Price{},
+			secondaryGetPricesSynced: &[]bool{false},
+			secondaryGetPricesErr:    &[]error{},
 			savePricesCount: &price.CallCounter{
 				Count: 0,
 			},
