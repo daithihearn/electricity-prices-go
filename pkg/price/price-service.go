@@ -3,11 +3,8 @@ package price
 import (
 	"context"
 	"electricity-prices/pkg/date"
-	"electricity-prices/pkg/db"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"log"
 	"time"
 )
 
@@ -56,44 +53,10 @@ func (r *Receiver) GetPrices(ctx context.Context, start time.Time, end time.Time
 }
 
 func (r *Receiver) SavePrices(ctx context.Context, prices []Price) error {
-
-	client, err := db.GetMongoClient(ctx)
+	err := r.Collection.InsertMany(ctx, prices)
 	if err != nil {
-		log.Fatalf("Error getting mongo ree: %v", err)
-	}
-
-	// Insert the documents
-	// Start a session for the transaction.
-	session, err := client.StartSession()
-	if err != nil {
-		log.Fatalf("Error starting session: %v", err)
-	}
-	defer session.EndSession(ctx)
-
-	// Define the work to be done in the transaction.
-	txnErr := mongo.WithSession(ctx, session, func(sc mongo.SessionContext) error {
-		// Start the transaction
-		err := session.StartTransaction()
-		if err != nil {
-			return err
-		}
-
-		err = r.Collection.InsertMany(ctx, prices)
-		if err != nil {
-			// If there'r an error, abort the transaction and return the error.
-			session.AbortTransaction(sc)
-			return err
-		}
-
-		// If everything went well, commit the transaction.
-		err = session.CommitTransaction(sc)
 		return err
-	})
-
-	if txnErr != nil {
-		log.Fatalf("Transaction failed: %v", txnErr)
 	}
-
 	return nil
 }
 

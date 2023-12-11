@@ -1015,7 +1015,7 @@ func TestProcessAlexaSkillRequest(t *testing.T) {
 			intent: AlexaIntent{
 				Name: "AMAZON.HelpIntent",
 			},
-			expectMessage: "You can ask for the current price, the average price today, the average price for the last 30 days, the next low 3-hour period, the next high 3-hour period, or a full update. What would you like to know?",
+			expectMessage: "You can ask for the current price, the average price today, the average price for the last 30 days, the next cheap period, the next expensive period, a full update or the prices for tomorrow. What would you like to know?",
 			expectEnd:     false,
 		},
 		{
@@ -1025,7 +1025,7 @@ func TestProcessAlexaSkillRequest(t *testing.T) {
 			intent: AlexaIntent{
 				Name: "AMAZON.HelpIntent",
 			},
-			expectMessage: "Esta skill le permite obtener información sobre el precio de la electricidad en España. Puede preguntar por el precio actual, el precio promedio de hoy, el precio promedio de los últimos 30 días, el próximo período barato, el próximo período alto, el período barato actual y el período alto actual. También puede preguntar por el precio de mañana. Que le gustaría saber?",
+			expectMessage: "Esta skill le permite obtener información sobre el precio de la electricidad en España. Puede preguntar por el precio actual, el precio promedio de hoy, el precio promedio de los últimos 30 días, el próximo período barato, el próximo período caro, una actualización completa o por los precio de mañana. Que le gustaría saber?",
 			expectEnd:     false,
 		},
 		{
@@ -1297,7 +1297,7 @@ func TestProcessAlexaSkillRequest(t *testing.T) {
 			mockDayRatingError:  nil,
 			mockDayAverage:      0.1,
 			mockDayAverageError: errors.New("error"),
-			expectMessage:       "Sorry, there was an error. Please try again later.",
+			expectMessage:       "There is no data available yet for tomorrow. Please check back later. Prices are generally available by 8:30 PM.",
 			expectEnd:           false,
 		},
 		{
@@ -1311,7 +1311,7 @@ func TestProcessAlexaSkillRequest(t *testing.T) {
 			mockDayRatingError:  nil,
 			mockDayAverage:      0.1,
 			mockDayAverageError: errors.New("error"),
-			expectMessage:       "Lo siento, no pude obtener los datos. Por favor, inténtelo de nuevo más tarde.",
+			expectMessage:       "Aún no hay datos disponibles para mañana. Por favor, vuelva más tarde. Los precios están generalmente disponibles a las 8:30 PM.",
 			expectEnd:           false,
 		},
 		{

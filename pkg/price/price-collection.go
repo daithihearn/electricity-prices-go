@@ -65,14 +65,49 @@ func (r ColReceiver) Find(ctx context.Context, filter interface{}) ([]Price, err
 }
 
 func (r ColReceiver) InsertMany(ctx context.Context, documents []Price) error {
-	var documentsInterface []interface{}
-	for _, doc := range documents {
-		documentsInterface = append(documentsInterface, doc)
+	client, err := db.GetMongoClient(ctx)
+	if err != nil {
+		log.Fatalf("Error getting mongo client: %v", err)
 	}
 
-	_, err := r.Col.InsertMany(ctx, documentsInterface)
+	// Insert the documents
+	// Start a session for the transaction.
+	session, err := client.StartSession()
 	if err != nil {
+		log.Fatalf("Error starting session: %v", err)
+	}
+	defer session.EndSession(ctx)
+
+	// Define the work to be done in the transaction.
+	txnErr := mongo.WithSession(ctx, session, func(sc mongo.SessionContext) error {
+		// Start the transaction
+		err := session.StartTransaction()
+		if err != nil {
+			return err
+		}
+		var documentsInterface []interface{}
+		for _, doc := range documents {
+			documentsInterface = append(documentsInterface, doc)
+		}
+
+		_, err = r.Col.InsertMany(ctx, documentsInterface)
+		if err != nil {
+			return err
+		}
+
+		if err != nil {
+			// If there's an error, abort the transaction and return the error.
+			session.AbortTransaction(sc)
+			return err
+		}
+
+		// If everything went well, commit the transaction.
+		err = session.CommitTransaction(sc)
 		return err
+	})
+
+	if txnErr != nil {
+		log.Fatalf("Transaction failed: %v", txnErr)
 	}
 
 	return nil
