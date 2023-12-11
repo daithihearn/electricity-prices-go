@@ -1,5 +1,5 @@
 // @title Electricity Prices API
-// @version 2.1.23
+// @version 2.1.24
 // @description Returns PVPC electricity prices for a given range
 // @BasePath /api/v1
 package main
