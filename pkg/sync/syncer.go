@@ -4,6 +4,7 @@ import (
 	"context"
 	"electricity-prices/pkg/date"
 	"electricity-prices/pkg/price"
+	"errors"
 	"log"
 	"time"
 )
@@ -59,8 +60,7 @@ func (s *Syncer) Sync(ctx context.Context, end time.Time) (bool, error) {
 		}
 
 		if len(prices) == 0 {
-			log.Printf("No prices for %s. Exiting...", currentDate.Format("January 2 2006"))
-			return false, nil
+			return false, errors.New("no prices for " + currentDate.Format("January 2 2006"))
 		}
 
 		log.Printf("Syncing prices for %s", currentDate.Format("January 2 2006"))
