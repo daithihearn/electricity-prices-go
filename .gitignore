@@ -9,3 +9,5 @@ coverage*
 profile.out
 
 coverage-full.out
+
+.DS_Store
